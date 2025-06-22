@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회사법 퀴즈 대작전! 🕵️‍♀️</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN for sound effects -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
+    <style>
+        /* Inter font setting */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Apply background and text color for the entire body using Tailwind's dark: prefix */
+            /* Default light mode colors */
+            @apply bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Add smooth transition effect */
+        }
+        /* Scrollbar design (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+            @apply dark:bg-gray-700; /* Dark mode scrollbar track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            @apply dark:bg-gray-500; /* Dark mode scrollbar thumb */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+            @apply dark:bg-gray-400; /* Dark mode scrollbar thumb hover */
+        }
+
+        /* --- Dark Mode Specific Overrides (Stronger Application for text visibility) --- */
+        /* Ensure body background changes directly when html has 'dark' class and text becomes very light */
+        html.dark body {
+            background-color: #111827 !important; /* Tailwind's gray-900 equivalent */
+            color: #f9fafb !important; /* Tailwind's gray-100 equivalent - general text color */
+        }
+        /* Ensure quiz-container background changes directly and its child texts are bright */
+        html.dark #quiz-container {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent */
+        }
+
+        /* Force specific text elements to be white in dark mode */
+        html.dark #start-screen h1,
+        html.dark #start-screen p,
+        html.dark #quiz-header #question-count,
+        html.dark #quiz-header #timer-display,
+        html.dark #question-text,
+        html.dark #feedback-text,
+        html.dark #explanation-text,
+        html.dark #end-quiz-screen h2,
+        html.dark #incorrect-count-display {
+            color: #f9fafb !important; /* Tailwind's gray-100 - very light almost white */
+        }
+
+        /* MODIFIED: Ensure feedback-explanation-area background changes in dark mode */
+        html.dark #feedback-explanation-area {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent for the explanation box */
+            border-color: #4b5563 !important; /* Dark mode border color */
+        }
+
+
+        /* Choices text color in dark mode - APPLY !IMPORTANT HERE more directly */
+        html.dark #question-choices-area > div {
+            color: #f9fafb !important; /* Ensures choice text is white in dark mode */
+            background-color: #374151 !important; /* Tailwind gray-700 equivalent */
+            border-color: #4b5563 !important; /* Tailwind gray-600 equivalent */
+        }
+
+        /* Override specific class text colors for dark mode */
+        .text-gray-700 { /* For start screen P tags, question count, timer, incorrect count */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-gray-800 { /* For H1, H2, Question text */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-blue-600 { /* For scores etc. */
+             @apply dark:text-blue-400 !important; /* Keep blue for scores but make it dark-mode friendly */
+        }
+
+        /* Specific dark mode styles for choice buttons */
+        #question-choices-area > div.hover\:bg-blue-50:hover {
+            @apply dark:hover:bg-blue-900 dark:hover:bg-opacity-20;
+        }
+
+        /* MODIFIED: Changed selected choice background and added distinct blue border for dark mode */
+        #question-choices-area > div.bg-blue-200 { /* selected choice in light mode */
+            /* Existing light mode styles */
+        }
+        html.dark #question-choices-area > div.bg-blue-200 { /* selected choice in dark mode */
+            background-color: #2a3547 !important; /* Slightly lighter than gray-800, darker than gray-700 for distinct selection */
+            border-color: #60a5fa !important; /* Tailwind blue-400 for a clear blue border */
+            border-width: 2px !important; /* Make border more visible */
+            /* Removed ring as border is now used for highlight */
+        }
+
+        #question-choices-area > div.bg-green-100 { /* correct answer feedback */
+            @apply dark:bg-green-700 dark:border-green-400;
+        }
+        #question-choices-area > div.bg-green-200 { /* selected correct answer */
+            @apply dark:bg-green-600 dark:border-green-300;
+        }
+        #question-choices-area > div.bg-red-200 { /* selected incorrect answer */
+            @apply dark:bg-red-600 dark:border-red-300;
+        }
+
+        /* --- Dark Mode for Message Box --- */
+        html.dark #message-box > div { /* Inner div of the message box */
+            background-color: #1f2937 !important; /* Darker background */
+            color: #f9fafb !important; /* Light text for consistency */
+        }
+
+        html.dark #message-text { /* Text inside the message box */
+            color: #f9fafb !important; /* Ensure message text is light */
+        }
+
+        /* Message box button for dark mode (using existing gradient, but ensuring text is visible) */
+        html.dark #message-ok-btn {
+            color: #ffffff !important; /* Explicitly ensure white text on button */
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container" class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl transition-colors duration-300 relative">
+        <!-- Settings Controls (Top Right) -->
+        <div id="settings-controls" class="absolute top-4 right-4 flex space-x-2">
+            <!-- Dark Mode Toggle -->
+            <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out hover:scale-110">
+                <!-- Sun icon (default: shown in light mode) -->
+                <svg id="sun-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1m-16 0H3m15.325-7.325l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l.707-.707M6.343 6.343l-.707-.707"></path>
+                </svg>
+                <!-- Moon icon (hidden by default, shown in dark mode) -->
+                <svg id="moon-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+            <!-- Sound Toggle -->
+            <button id="sound-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out transform hover:scale-110">
+                <!-- Speaker icon (default: shown when sound is on) -->
+                <svg id="speaker-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9l1.414-1.414M7.05 18.95a5 5 0 010-7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <!-- Mute icon (hidden by default, shown when sound is off) -->
+                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Start screen -->
+        <div id="start-screen" class="text-center p-6 space-y-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">회사법 퀴즈 대작전! 🕵️‍♀️</h1>
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-8">몇 문제 풀어볼까? 숫자 버튼을 눌러줘! 👇</p>
+            <div class="space-y-4">
+                <!-- Start 10 questions button with pastel gradient -->
+                <button id="start-10-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    10문제 도전! 🚀
+                </button>
+                <!-- Start 20 questions button with pastel gradient -->
+                <button id="start-20-btn" class="w-full bg-gradient-to-r from-green-200 to-green-400 hover:from-green-300 hover:to-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    20문제 용감하게! 🌟
+                </button>
+                <!-- Start 40 questions button with pastel gradient -->
+                <button id="start-40-btn" class="w-full bg-gradient-to-r from-purple-200 to-purple-400 hover:from-purple-300 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    40문제 척척박사! 🌈
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz screen -->
+        <div id="quiz-screen" class="hidden w-full">
+            <!-- Quiz header: Question number, score, and Timer -->
+            <div id="quiz-header" class="flex justify-between items-center w-full mb-6">
+                <p id="question-count" class="text-lg font-semibold text-gray-700 dark:text-gray-300">문제 0 / 0</p>
+                <p id="timer-display" class="text-lg font-semibold text-gray-700 dark:text-gray-300">00:00</p>
+                <p id="score-display" class="text-lg font-semibold text-blue-600 dark:text-blue-400">별 점수: 0 ✨</p>
+            </div>
+
+            <!-- Question text -->
+            <p id="question-text" class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6"></p>
+
+            <!-- Choices area -->
+            <div id="question-choices-area" class="w-full space-y-4 mb-6">
+                <!-- Choices will be dynamically inserted here -->
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            </div>
+
+            <!-- Feedback and explanation area -->
+            <div id="feedback-explanation-area" class="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
+                <p id="feedback-text" class="font-semibold mb-2"></p>
+                <p id="explanation-text" class="text-gray-700 dark:text-gray-300 text-sm"></p>
+            </div>
+
+            <!-- Quiz control buttons -->
+            <div id="quiz-controls" class="w-full flex justify-between mt-6">
+                <!-- Check Answer / Next Question button with pastel gradient -->
+                <button id="check-next-btn" class="bg-gradient-to-r from-indigo-200 to-indigo-400 hover:from-indigo-300 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    다음 문제로 Go! 👉
+                </button>
+                <!-- End Early button with pastel gradient -->
+                <button id="end-early-btn" class="bg-gradient-to-r from-red-200 to-red-400 hover:from-red-300 hover:to-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    퀴즈 이제 그만! 멈춰! ✋
+                </button>
+            </div>
+        </div>
+
+        <!-- End quiz screen -->
+        <div id="end-quiz-screen" class="text-center p-6 space-y-4 hidden w-full">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">퀴즈 끝! 정말 멋진 도전이었어! ✨</h2>
+            <p id="final-score" class="text-2xl text-blue-600 dark:text-blue-400 font-bold mb-6">최종 점수: 0점</p>
+            <div id="end-quiz-buttons-area" class="space-y-4">
+                <!-- Restart Full Quiz button with pastel gradient -->
+                <button id="restart-full-quiz-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음부터 다시! 🐥
+                </button>
+                <!-- Review Incorrect button with pastel gradient -->
+                <button id="review-incorrect-btn" class="w-full bg-gradient-to-r from-yellow-200 to-yellow-400 hover:from-yellow-300 hover:to-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    틀린 문제 복습! 🧠
+                </button>
+                <!-- Go To Home button with pastel gradient -->
+                <button id="go-to-home-btn" class="w-full bg-gradient-to-r from-gray-200 to-gray-400 hover:from-gray-300 hover:to-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음 화면으로! 🏠
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom message box -->
+    <div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl text-center w-80">
+            <p id="message-text" class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100"></p>
+            <button id="message-ok-btn" class="bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-2 px-4 rounded-lg">좋아! 😊</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================ Cache DOM elements ============================
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const endQuizScreen = document.getElementById('end-quiz-screen');
+
+        const start10Button = document.getElementById('start-10-btn');
+        const start20Button = document.getElementById('start-20-btn');
+        const start40Button = document.getElementById('start-40-btn');
+
+        const quizHeader = document.getElementById('quiz-header');
+        const questionCount = document.getElementById('question-count');
+        const timerDisplay = document.getElementById('timer-display'); // Added timer display element
+        const scoreDisplay = document.getElementById('score-display');
+        const questionText = document.getElementById('question-text');
+        const questionChoicesArea = document.getElementById('question-choices-area');
+        const feedbackExplanationArea = document.getElementById('feedback-explanation-area');
+        const feedbackText = document.getElementById('feedback-text');
+        const explanationText = document.getElementById('explanation-text');
+        const quizControls = document.getElementById('quiz-controls');
+        const checkNextButton = document.getElementById('check-next-btn');
+        const endEarlyButton = document.getElementById('end-early-btn');
+
+        const finalScoreDisplay = document.getElementById('final-score');
+        const endQuizButtonsArea = document.getElementById('end-quiz-buttons-area'); // Added
+        const restartFullQuizButton = document.getElementById('restart-full-quiz-btn');
+        const reviewIncorrectButton = document.getElementById('review-incorrect-btn');
+        const goToHomeButton = document.getElementById('go-to-home-btn');
+
+        const settingsControls = document.getElementById('settings-controls'); // Settings button container
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const moonIcon = document.getElementById('moon-icon');
+        const sunIcon = document.getElementById('sun-icon');
+        const soundToggle = document.getElementById('sound-toggle');
+        const speakerIcon = document.getElementById('speaker-icon');
+        const muteIcon = document.getElementById('mute-icon');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageOkButton = document.getElementById('message-ok-btn');
+
+        // ============================ Global variables and quiz data ============================
+        let allQuizData = []; // Array to store all quiz data
+        let currentQuizData = []; // Array of questions for the current quiz session
+        let incorrectQuestions = []; // Array to store incorrect questions
+        let currentQuestionIndex = 0;
+        let score = 0; // Raw score (number of correct answers)
+        let selectedChoice = null; // Changed to store 'O' or 'X'
+        let isAnswerChecked = false; // Flag for answer check status
+        let quizTotalQuestions = 0; // Total number of questions for the current quiz session (set at start)
+        let isSoundEnabled = true; // Sound active status
+        let timer = 0; // Timer in seconds
+        let timerIntervalId = null; // ID to clear the interval
+
+        // Tone.js PolySynth (synthesizer that can play multiple notes simultaneously)
+        const polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+
+        // ============================ Custom message box functions ============================
+        /**
+         * Function to display a message to the user (replaces alert)
+         * @param {string} message - Text message to display
+         */
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            // Hide message box and remove event listener when 'OK' button is clicked
+            messageOkButton.addEventListener('click', hideMessage, { once: true });
+        }
+
+        /**
+         * Function to hide the message box
+         */
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // ============================ Sound effect functions ============================
+        /**
+         * Checks Tone.start() and Tone.Destination.mute status before playing sound
+         * @returns {Promise<void>}
+         */
+        async function ensureAudioContextAndSound() {
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            // Set Tone.Destination.mute based on isSoundEnabled status
+            Tone.Destination.mute = !isSoundEnabled;
+        }
+
+        /**
+         * Sound played when the answer is correct
+         */
+        async function playCorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C5", "8n"); // Play C5 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when the answer is incorrect
+         */
+        async function playIncorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C3", "8n"); // Play C3 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when quiz starts or restarts (uses chord)
+         */
+        async function playStartSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); // Short ascending chord (C Major)
+            }
+        }
+
+        /**
+         * Sound played when quiz ends (uses chord)
+         */
+        async function playEndSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["A3", "C4", "E4"], "4n"); // Short, low descending sound (A Minor)
+            }
+        }
+
+        /**
+         * Sound played on general button click or choice selection
+         */
+        async function playButtonClickSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("G4", "32n"); // Very short click sound
+            }
+        }
+
+        // ============================ Embed quiz data ============================
+        const internationalTaxQuizData = [
+            {
+                question: "주식회사의 설립 시 발기설립과 모집설립 모두 1인 이상의 발기인이 필요하다. (O/X)",
+                answer: "O",
+                explanation: "주식회사의 발기설립과 모집설립 모두 상법 제289조 제1항에 따라 1인 이상의 발기인이 필요합니다. 다만, 발기인 중에는 1주 이상을 인수하는 자가 포함되어야 합니다."
+            },
+            {
+                question: "발기설립의 경우 발기인이 주식 전부를 인수하여야 하며, 모집설립의 경우 발기인이 주식의 일부만 인수하여도 무방하다. (O/X)",
+                answer: "O",
+                explanation: "발기설립은 발기인이 발행주식 전부를 인수하는 방식이고, 모집설립은 발기인이 일부 주식을 인수하고 나머지 주식을 주주를 모집하여 인수시키는 방식입니다. (상법 제295조)"
+            },
+            {
+                question: "주식회사의 정관은 공증인의 인증을 받음으로써 효력이 발생한다. (O/X)",
+                answer: "O",
+                explanation: "주식회사의 정관은 상법 제292조에 따라 공증인의 인증을 받음으로써 효력이 발생합니다. 다만, 자본금 총액이 10억 원 미만인 회사를 발기설립하는 경우에는 공증인의 인증을 받지 않아도 효력이 있습니다. (상법 제292조 단서)"
+            },
+            {
+                question: "현물출자를 하는 자는 정관에 그 종류, 수량, 가격과 이에 대하여 부여할 주식의 종류와 수를 기재하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "현물출자를 하는 경우 정관에 현물출자의 내용(종류, 수량, 가격)과 이에 대하여 발행할 주식의 종류와 수를 기재해야 합니다. (상법 제290조 제3호)"
+            },
+            {
+                question: "발기설립 시 이사 및 감사는 발기인 전원의 동의로 선임한다. (O/X)",
+                answer: "O",
+                explanation: "발기설립의 경우 정관작성 후 발기인 전원의 동의로 이사 및 감사를 선임합니다. (상법 제296조)"
+            },
+            {
+                question: "모집설립 시 이사 및 감사는 창립총회의 결의로 선임한다. (O/X)",
+                answer: "O",
+                explanation: "모집설립의 경우 창립총회에서 이사 및 감사를 선임합니다. (상법 제307조)"
+            },
+            {
+                question: "주식회사의 설립등기는 본점 소재지에서 설립등기함으로써 효력이 발생한다. (O/X)",
+                answer: "O",
+                explanation: "주식회사는 본점 소재지에서 설립등기를 함으로써 법인으로 성립합니다. (상법 제172조, 제317조)"
+            },
+            {
+                question: "설립 중의 회사(회사설립을 위하여 발기인이 단체적 활동을 하는 단계)는 권리능력이 인정되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "설립 중의 회사는 비록 아직 법인격은 없지만, 회사 설립을 위한 범위 내에서는 권리능력과 행위능력을 인정하는 것이 통설 및 판례의 입장입니다."
+            },
+            {
+                question: "발기설립의 경우 이사, 감사는 정관작성 후 주식발행사항을 결정하고 주식인수를 진행한다. (O/X)",
+                answer: "X",
+                explanation: "발기설립의 경우 주식발행사항은 정관에 기재하거나 발기인 전원의 동의로 결정하며, 주식인수는 발기인이 직접 합니다. 이사, 감사는 그 이후에 선임됩니다. (상법 제289조, 제291조, 제296조)"
+            },
+            {
+                question: "모집설립의 경우 발기인이 주식의 전부 또는 일부를 인수한 후 잔여 주식을 모집한다. (O/X)",
+                answer: "X",
+                explanation: "모집설립의 경우 발기인은 주식의 일부를 인수하고 잔여 주식을 모집합니다. 주식 전부를 인수하는 것은 발기설립입니다. (상법 제295조 제2항)"
+            },
+            {
+                question: "주금납입은 은행 또는 그 밖의 금융기관에 보관하여야 하며, 이는 자본충실의 원칙을 반영한 것이다. (O/X)",
+                answer: "O",
+                explanation: "주식회사의 주금납입은 납입취급기관인 은행이나 기타 금융기관에 보관해야 하며, 이는 회사의 자본이 실질적으로 확보되도록 하는 자본충실의 원칙을 위한 것입니다. (상법 제305조)"
+            },
+            {
+                question: "창립총회는 발기인 전원으로 구성되며, 특별결의사항에 대해서는 출석한 주식수 3분의 2 이상의 찬성과 발행주식총수 3분의 1 이상의 찬성이 필요하다. (O/X)",
+                answer: "X",
+                explanation: "창립총회는 주식인수인 전원으로 구성됩니다. (상법 제308조 제1항) 그리고 결의 요건은 주주총회의 특별결의와 동일합니다. (상법 제309조, 제434조)"
+            },
+            {
+                question: "회사가 설립등기를 하기 전에 발생한 발기인의 행위로 인한 책임은 원칙적으로 회사에 승계되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "원칙적으로 발기인의 행위는 회사 설립 전에 이루어진 것이므로 회사에 책임이 승계되지 않지만, 예외적으로 그 행위가 회사의 설립을 위해 필요한 행위였고 설립 후 회사가 이를 추인한 경우 등에는 회사에 책임이 승계될 수 있습니다. (설립비용 및 보수)"
+            },
+            {
+                question: "설립 당시 이사 또는 감사가 회사에 대하여 손해배상책임을 지는 경우, 그 책임은 총주주의 동의로 면제할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "설립 당시의 이사 또는 감사(설립위원)의 책임은 총주주의 동의가 아닌 주주 전원의 동의가 있어야 면제할 수 있습니다. (상법 제322조)"
+            },
+            {
+                question: "발기인이 납입기일 내에 주금납입을 하지 아니한 경우, 실권의 효과는 주주로서의 지위를 잃게 된다. (O/X)",
+                answer: "O",
+                explanation: "발기인 또는 주식인수인이 납입기일에 주금납입을 하지 않으면 그 권리를 잃게 됩니다 (실권). 이는 주주로서의 지위를 상실하는 효과를 가져옵니다. (상법 제306조)"
+            },
+            {
+                question: "정관의 절대적 기재사항에 주식의 총수와 1주의 금액이 포함된다. (O/X)",
+                answer: "O",
+                explanation: "정관의 절대적 기재사항 중에는 발행할 주식의 총수와 1주의 금액이 포함됩니다. (상법 제289조 제1항 제4호 및 제5호)"
+            },
+            {
+                question: "정관의 상대적 기재사항은 정관에 기재하지 않아도 정관 자체가 무효가 되는 것은 아니나, 그 효력이 발생하지 않는 사항이다. (O/X)",
+                answer: "O",
+                explanation: "상대적 기재사항은 정관에 기재하지 않으면 그 사항 자체가 효력을 발생할 수 없지만, 정관 전체의 효력에는 영향을 미치지 않습니다. 예를 들어, 변태설립사항 등이 이에 해당합니다."
+            },
+            {
+                question: "상법상 회사는 합명회사, 합자회사, 유한책임회사, 주식회사, 유한회사로 구분된다. (O/X)",
+                answer: "O",
+                explanation: "우리 상법은 회사를 합명회사, 합자회사, 유한책임회사, 주식회사, 유한회사 총 5가지로 구분합니다. (상법 제170조)"
+            },
+            {
+                question: "합명회사의 사원은 무한책임사원이며, 합자회사의 사원은 유한책임사원과 무한책임사원으로 구성된다. (O/X)",
+                answer: "O",
+                explanation: "합명회사의 사원은 모두 회사의 채무에 대해 직접, 연대, 무한책임을 지는 무한책임사원입니다. 합자회사는 무한책임사원과 유한책임사원으로 구성됩니다. (상법 제178조, 제268조)"
+            },
+            {
+                question: "유한책임회사는 사원이 출자한 재산에 한하여 책임을 지는 사원들로 구성된다. (O/X)",
+                answer: "O",
+                explanation: "유한책임회사의 사원은 출자금액을 한도로 책임을 지는 유한책임사원으로 구성됩니다. (상법 제287조의2)"
+            },
+            {
+                question: "주식회사는 주주의 유한책임이 인정되는 반면, 유한회사는 주주의 무한책임이 인정된다. (O/X)",
+                answer: "X",
+                explanation: "주식회사와 유한회사 모두 사원(주주 또는 사원)의 유한책임이 인정됩니다. 즉, 출자한 금액을 한도로 책임집니다. (상법 제331조, 제551조)"
+            },
+            {
+                question: "상법상 법인격부인론은 법인격의 남용을 방지하기 위한 이론이다. (O/X)",
+                answer: "O",
+                explanation: "법인격부인론은 회사가 독립된 법인격을 남용하여 탈법적인 행위를 하거나 채무를 면탈하는 경우, 예외적으로 법인격을 부인하여 그 배후의 개인에게 책임을 묻는 이론입니다."
+            },
+            {
+                question: "법인격부인론은 회사의 독립적인 법인격을 완전히 부정하는 것을 의미한다. (O/X)",
+                answer: "X",
+                explanation: "법인격부인론은 회사의 법인격을 '일시적으로, 특정 사안에 한하여' 부인하는 것이지, 회사의 독립적인 법인격 자체를 완전히 부정하거나 소멸시키는 것은 아닙니다."
+            },
+            {
+                question: "회사는 정관으로 정하는 바에 따라 한 종류 또는 여러 종류의 주식을 발행할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "상법 제329조의2에 따라 회사는 정관으로 정하는 바에 따라 한 종류 또는 여러 종류의 주식을 발행할 수 있습니다."
+            },
+            {
+                question: "주식은 액면주식과 무액면주식으로 나눌 수 있으며, 우리나라 상법은 무액면주식의 발행을 허용한다. (O/X)",
+                answer: "X",
+                explanation: "우리 상법은 원칙적으로 액면주식 발행을 원칙으로 하며, 무액면주식의 발행은 허용하지 않습니다. (상법 제329조)"
+            },
+            {
+                question: "1주의 금액은 100원 이상으로 하여야 하며, 이는 동일한 종류의 주식에 대하여는 일률적으로 적용되어야 한다. (O/X)",
+                answer: "O",
+                explanation: "상법 제329조 제3항에 따라 1주의 금액은 100원 이상으로 하여야 하며, 동일한 종류의 주식에 대하여는 1주의 금액이 균일해야 합니다."
+            },
+            {
+                question: "회사가 발행할 주식의 총수는 정관에 기재하여야 하며, 이는 발행예정주식총수를 의미한다. (O/X)",
+                answer: "O",
+                explanation: "회사가 발행할 주식의 총수는 정관의 절대적 기재사항이며, 이는 회사가 장래에 발행할 수 있는 주식의 총수를 의미합니다. (상법 제289조 제1항 제4호)"
+            },
+            {
+                question: "주식은 균등한 비율로 의결권을 가지는 것이 원칙이나, 종류주식 발행을 통해 차등을 둘 수 있다. (O/X)",
+                answer: "O",
+                explanation: "주주평등의 원칙에 따라 1주마다 1개의 의결권이 원칙이지만, 상법 제344조에 따라 종류주식 발행을 통해 의결권의 제한이나 우선적 지위 등을 둘 수 있습니다."
+            },
+            {
+                question: "무의결권 주식은 의결권이 없는 대신 다른 종류의 주식보다 배당에 관하여 우선적 지위를 가질 수 있다. (O/X)",
+                answer: "O",
+                explanation: "무의결권 주식은 의결권이 없는 대신 이익배당이나 잔여재산 분배에 있어 우선적 지위를 가질 수 있는 종류주식의 일종입니다. (상법 제344조의3)"
+            },
+            {
+                question: "전환주식은 발행 시부터 일정한 기간 내에 다른 종류의 주식으로 전환할 수 있는 주식이다. (O/X)",
+                answer: "O",
+                explanation: "전환주식은 주주가 전환권을 행사하여 발행 시 정해진 조건에 따라 다른 종류의 주식으로 바꿀 수 있는 주식입니다. (상법 제346조)"
+            },
+            {
+                question: "상환주식은 회사가 이익으로 소각할 수 있는 주식으로서, 발행 시부터 상환에 관한 조건을 정해야 한다. (O/X)",
+                answer: "O",
+                explanation: "상환주식은 회사가 이익소각의 방법으로 다시 취득하여 소각할 수 있는 주식이며, 상환에 관한 사항은 정관에 기재해야 합니다. (상법 제345조)"
+            },
+            {
+                question: "주권은 주식회사의 주주권을 표창하는 유가증권으로서, 주식의 발행과 동시에 발행하는 것이 원칙이다. (O/X)",
+                answer: "X",
+                explanation: "주권은 주식의 납입이 완료된 후, 회사의 성립 또는 신주발행의 효력 발생 후 지체없이 발행하여야 합니다. 주식의 발행과 동시에 발행하는 것이 아닙니다. (상법 제355조)"
+            },
+            {
+                question: "주권은 기명식으로 발행되어야 하며, 무기명식 주권은 발행할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "상법 개정으로 무기명식 주식은 발행할 수 없게 되었으나 (2019년 개정), 주권은 원칙적으로 기명식으로 발행됩니다. 다만, 상장회사의 경우에는 주권발행을 대신하여 한국예탁결제원의 계좌에 등록하는 전자등록 방식이 의무화되었습니다."
+            },
+            {
+                question: "주식의 양도는 주권의 교부에 의하여 이루어지는 것이 원칙이다. (O/X)",
+                answer: "O",
+                explanation: "주식의 양도는 주권의 교부에 의하여 이루어지는 것이 원칙입니다. (상법 제336조 제1항) 다만, 전자등록주식은 전자등록부에 기재함으로써 효력이 발생합니다."
+            },
+            {
+                question: "주식의 양도는 정관으로 제한할 수 없으며, 이는 주식양도자유의 원칙에 따른 것이다. (O/X)",
+                answer: "X",
+                explanation: "주식양도자유의 원칙이 있지만, 상법 제335조 제1항 단서에 따라 정관으로 주식의 양도를 제한할 수 있습니다. 단, 이 경우 이사회 승인을 받도록 하는 등 합리적인 제한이어야 합니다."
+            },
+            {
+                question: "명의개서는 주주명부에 주주의 성명과 주소를 기재하는 것으로서, 회사의 주주에 대한 대항요건이다. (O/X)",
+                answer: "O",
+                explanation: "주식의 취득은 주권의 교부로 효력이 발생하지만, 회사의 주주로 대항하기 위해서는 주주명부에 기재하는 명의개서가 필요합니다. (상법 제337조)"
+            },
+            {
+                question: "주주명부 폐쇄 또는 기준일 설정은 주주확정의 편의를 위한 것으로서, 그 기간은 3월을 초과하지 못한다. (O/X)",
+                answer: "O",
+                explanation: "주주명부 폐쇄 기간은 3개월을 초과할 수 없고, 기준일은 3개월 이내의 날로 정해야 합니다. (상법 제354조)"
+            },
+            {
+                question: "회사는 자기주식을 취득할 수 없으며, 이는 자본충실의 원칙을 위반하기 때문이다. (O/X)",
+                answer: "X",
+                explanation: "원칙적으로 자기주식 취득은 자본충실의 원칙상 금지되었으나, 상법 개정으로 일정한 요건(배당가능이익 범위 내 등)과 절차를 거쳐 자기주식 취득이 허용됩니다. (상법 제341조)"
+            },
+            {
+                question: "회사는 특정 목적을 위해 정관 또는 주주총회 특별결의로 자기주식을 취득할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "자기주식 취득은 이사회의 결의로 가능하며, 반드시 주주총회 특별결의가 필요한 것은 아닙니다. (상법 제341조의2)"
+            },
+            {
+                question: "자기주식 취득 시에는 주주에게 균등한 기회를 부여하여야 하며, 특정한 주주에게만 매수하게 할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "자기주식 취득 시에는 주주평등의 원칙에 따라 주주에게 균등한 기회를 부여해야 합니다. 공개매수 등의 방법을 사용합니다. (상법 제341조의2 제1항)"
+            },
+            {
+                question: "자본금은 발행주식의 액면총액을 의미하며, 이는 회사의 순자산액을 표시하는 것이다. (O/X)",
+                answer: "X",
+                explanation: "자본금은 발행주식의 액면총액을 의미하는 것은 맞지만, 이는 회사의 순자산액을 표시하는 것이 아니라 법률상 최저 자본액의 기준이 되는 개념입니다. 순자산액은 자산에서 부채를 뺀 실질적인 재산 상태를 나타냅니다."
+            },
+            {
+                question: "주식의 액면미달 발행은 원칙적으로 허용되지 않으나, 법원의 인가를 받으면 가능하다. (O/X)",
+                answer: "O",
+                explanation: "주식의 액면미달 발행은 원칙적으로 금지되지만, 회사 성립 후 2년을 경과한 후에 주주총회의 특별결의 및 법원의 인가를 받으면 예외적으로 허용됩니다. (상법 제417조)"
+            },
+            {
+                question: "신주발행은 원칙적으로 주주배정 방식에 의하며, 제3자 배정 방식은 예외적으로 허용된다. (O/X)",
+                answer: "O",
+                explanation: "신주발행은 기존 주주의 신주인수권을 보호하기 위해 주주배정 방식이 원칙입니다. 제3자 배정 방식은 정관에 근거하거나 주주총회 특별결의가 있어야 예외적으로 가능합니다. (상법 제418조)"
+            },
+            {
+                question: "주주의 신주인수권은 주주총회의 특별결의로 배제할 수 있으며, 이 경우 주주는 불이익을 입을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "주주의 신주인수권은 주주총회의 특별결의(정관에 규정이 있는 경우 이사회 결의)로 배제할 수 있습니다. 이는 기존 주주의 지분율 희석 등으로 불이익을 줄 수 있습니다. (상법 제418조 제2항)"
+            },
+            {
+                question: "신주발행 시에는 발행주식의 종류와 수, 발행가액 등을 이사회의 결의로 정하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "신주발행에 관한 사항은 이사회가 결정합니다. (상법 제416조)"
+            },
+            {
+                question: "주주총회는 회사의 최고 의사결정기관으로서, 법령 또는 정관에 정한 사항에 한하여 결의할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "주주총회는 회사의 최고 의사결정기관이지만, 법령이나 정관에 규정된 사항에 대해서만 결의할 수 있는 권한을 가집니다. (상법 제361조)"
+            },
+            {
+                question: "주주총회는 정기총회와 임시총회로 구분되며, 정기총회는 매년 1회 일정한 시기에 소집한다. (O/X)",
+                answer: "O",
+                explanation: "주주총회는 정기총회(매년 1회 결산기 후 일정 시기 소집)와 임시총회(필요할 때 수시 소집)로 구분됩니다. (상법 제362조)"
+            },
+            {
+                question: "이사는 주주총회를 소집하는 것이 원칙이나, 감사 또는 소수주주는 법원의 허가를 받아 소집할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "이사가 주주총회를 소집하는 것이 원칙이지만, 감사(상법 제391조의3) 또는 소수주주(발행주식총수의 100분의 3 이상 주주, 상법 제366조)는 법원의 허가를 받아 총회를 소집할 수 있습니다."
+            },
+            {
+                question: "주주총회 소집통지는 총회일 2주 전에 발송하여야 하며, 이는 서면 또는 전자문서로 가능하다. (O/X)",
+                answer: "O",
+                explanation: "주주총회 소집통지는 총회일 2주 전(서면 또는 전자문서)에 각 주주에게 발송해야 합니다. (상법 제363조)"
+            },
+            {
+                question: "주주총회 보통결의는 출석한 주주의 의결권의 과반수와 발행주식총수의 4분의 1 이상의 수로 한다. (O/X)",
+                answer: "O",
+                explanation: "주주총회 보통결의는 출석한 주주의 의결권의 과반수와 발행주식총수의 4분의 1 이상의 수로 합니다. (상법 제368조 제1항)"
+            },
+            {
+                question: "주주총회 특별결의는 출석한 주주의 의결권의 3분의 2 이상과 발행주식총수의 3분의 1 이상의 수로 한다. (O/X)",
+                answer: "O",
+                explanation: "주주총회 특별결의는 출석한 주주의 의결권의 3분의 2 이상과 발행주식총수의 3분의 1 이상의 수로 합니다. (상법 제434조)"
+            },
+            {
+                question: "주주총회 특수결의는 주주 전원의 동의를 요하는 것으로서, 정관 변경 시에 주로 사용된다. (O/X)",
+                answer: "X",
+                explanation: "주주총회 특수결의는 주주 전원의 동의를 요하는 경우는 매우 드물며 (예: 주주에게 불이익한 정관변경), 정관 변경은 주로 특별결의사항입니다."
+            },
+            {
+                question: "의결권 없는 주식의 수는 발행주식총수에 산입되지 아니한다. (O/X)",
+                answer: "O",
+                explanation: "의결권이 없는 주식은 의결권 수 계산에 포함되지 않습니다. (상법 제371조 제1항)"
+            },
+            {
+                question: "주주는 1주마다 1개의 의결권을 가지는 것이 원칙이며, 이는 주주평등의 원칙을 반영한다. (O/X)",
+                answer: "O",
+                explanation: "주주는 그가 가진 주식의 수에 따라 의결권을 가집니다 (1주 1의결권 원칙). 이는 주주평등의 원칙의 한 내용입니다. (상법 제369조 제1항)"
+            },
+            {
+                question: "이사 또는 감사의 선임 및 해임은 주주총회 보통결의사항이다. (O/X)",
+                answer: "X",
+                explanation: "이사 또는 감사의 선임은 보통결의사항이나, 해임은 특별결의사항입니다. (상법 제382조, 제402조, 제409조)"
+            },
+            {
+                question: "정관의 변경은 주주총회 특별결의사항이다. (O/X)",
+                answer: "O",
+                explanation: "정관의 변경은 주주와 회사의 이해관계에 중요한 영향을 미치므로 주주총회 특별결의로 합니다. (상법 제433조, 제434조)"
+            },
+            {
+                question: "회사의 해산 및 합병은 주주총회 특별결의사항이다. (O/X)",
+                answer: "O",
+                explanation: "회사의 해산과 합병은 회사 존속에 중대한 영향을 미치는 사항이므로 주주총회 특별결의사항입니다. (상법 제518조, 제522조)"
+            },
+            {
+                question: "주주총회의 결의는 재적 주주의 100분의 5 이상에 해당하는 주식을 가진 주주가 그 결의일로부터 3개월 내에 소로써 이를 취소할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "주주총회 결의 취소의 소는 결의일부터 2개월 이내에 제기해야 하며, 결의 무효 또는 부존재의 소는 제기 기간의 제한이 없습니다. (상법 제376조, 제380조)"
+            },
+            {
+                question: "이사는 3명 이상이어야 하며, 이사회의 구성원은 1명 또는 2명인 경우도 가능하다. (O/X)",
+                answer: "X",
+                explanation: "이사는 3명 이상이어야 하는 것이 원칙이지만, 자본금 총액이 10억 원 미만인 회사는 1명 또는 2명의 이사를 둘 수 있습니다. (상법 제383조 제1항)"
+            },
+            {
+                question: "이사의 임기는 3년을 초과할 수 없으며, 이는 정관으로 단축할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "이사의 임기는 정관으로 3년 이내의 범위에서 정할 수 있습니다. (상법 제383조 제2항)"
+            },
+            {
+                question: "이사의 보수는 정관에 정함이 없으면 주주총회의 결의로 정한다. (O/X)",
+                answer: "O",
+                explanation: "이사의 보수는 정관에 정함이 없으면 주주총회의 보통결의로 정합니다. (상법 제388조)"
+            },
+            {
+                question: "이사는 회사에 대한 선량한 관리자의 주의의무를 지며, 법령과 정관을 준수하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "이사는 선량한 관리자의 주의의무와 법령 및 정관을 준수할 의무를 가집니다. (상법 제382조의3, 제387조)"
+            },
+            {
+                question: "이사는 자기 또는 제3자의 계산으로 회사와 동종의 영업을 영위할 수 없으며, 이는 경업금지의무에 해당한다. (O/X)",
+                answer: "O",
+                explanation: "이사는 이사회의 승인 없이 회사와 동종 영업을 하거나 동종 영업을 목적으로 하는 다른 회사의 무한책임사원이나 이사가 될 수 없습니다. (상법 제397조)"
+            },
+            {
+                question: "이사의 겸직금지의무는 이사가 다른 회사의 이사를 겸직하는 것을 금지하는 것이다. (O/X)",
+                answer: "X",
+                explanation: "경업금지의무는 회사와 '동종 영업'을 하는 다른 회사의 이사를 겸직하는 것을 금지하는 것이며, 단순히 다른 회사의 이사를 겸직하는 것을 모두 금지하는 것은 아닙니다."
+            },
+            {
+                question: "이사회는 이사 전원으로 구성되며, 회사의 업무집행에 관한 모든 사항을 결정한다. (O/X)",
+                answer: "O",
+                explanation: "이사회는 이사 전원으로 구성되며, 회사의 업무집행에 관한 중요 사항을 결정하고 이사의 직무집행을 감독합니다. (상법 제390조)"
+            },
+            {
+                question: "이사회는 정기이사회와 임시이사회로 구분되며, 의장은 이사회 결의로 선출한다. (O/X)",
+                answer: "X",
+                explanation: "이사회는 정기이사회와 임시이사회로 구분될 수 있으나, 의장은 정관에 특별한 정함이 없으면 대표이사가 됩니다. (상법 제393조 제1항)"
+            },
+            {
+                question: "이사회 결의는 이사 과반수의 출석과 출석이사 과반수의 찬성으로 한다. (O/X)",
+                answer: "O",
+                explanation: "이사회 결의는 이사 과반수의 출석과 출석이사 과반수의 찬성으로 합니다. (상법 제391조 제1항)"
+            },
+            {
+                question: "대표이사는 이사회의 결의로 선임하며, 반드시 1인이어야 하는 것은 아니다. (O/X)",
+                answer: "O",
+                explanation: "대표이사는 이사회의 결의로 선임하며, 1인 또는 수인을 둘 수 있습니다. (상법 제389조)"
+            },
+            {
+                question: "대표이사는 대외적으로 회사를 대표하며, 대내적으로는 업무를 집행한다. (O/X)",
+                answer: "O",
+                explanation: "대표이사는 대외적으로 회사를 대표하고, 대내적으로는 이사회 결의에 따라 회사의 업무를 집행합니다. (상법 제389조 제1항)"
+            },
+            {
+                question: "대표이사의 대표권에 대한 제한은 선의의 제3자에게 대항할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "대표이사의 대표권에 대한 제한은 등기하지 않으면 선의의 제3자에게 대항할 수 없습니다. (상법 제209조 제2항, 제389조 제3항)"
+            },
+            {
+                question: "감사는 1인 이상이어야 하며, 이사의 직무집행을 감사한다. (O/X)",
+                answer: "O",
+                explanation: "감사는 1인 이상이어야 하며, 회사의 업무와 회계를 감사합니다. (상법 제409조 제1항, 제413조)"
+            },
+            {
+                question: "감사의 임기는 3년을 초과할 수 없으며, 정관으로 단축할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "감사의 임기는 취임 후 3년 내의 최종의 결산기에 관한 정기총회의 종결시까지입니다. 정관으로 임기를 단축할 수 있습니다. (상법 제410조)"
+            },
+            {
+                question: "감사는 이사회에 출석하여 의견을 진술할 수 있으며, 이사의 위법행위를 발견한 경우 이를 주주총회에 보고하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "감사는 이사회에 출석하여 의견을 진술할 수 있으며, 이사의 위법행위를 발견하면 지체 없이 이사회에 보고하고, 필요한 경우 주주총회에 보고해야 합니다. (상법 제391조의2, 제413조의2)"
+            },
+            {
+                question: "감사위원회는 이사회 내 위원회로서, 감사의 직무를 수행한다. (O/X)",
+                answer: "O",
+                explanation: "감사위원회는 이사회 내에 설치되는 위원회로, 감사의 직무를 수행합니다. (상법 제415조의2)"
+            },
+            {
+                question: "감사위원회의 구성원은 모두 사외이사로 구성되어야 한다. (O/X)",
+                answer: "X",
+                explanation: "감사위원회의 위원은 3명 이상이어야 하며, 위원의 3분의 2 이상은 사외이사이어야 합니다. 반드시 모두 사외이사일 필요는 없습니다. (상법 제415조의2 제2항)"
+            },
+            {
+                question: "상법상 자본금 감소는 주주총회 특별결의사항이며, 채권자 보호 절차를 거쳐야 한다. (O/X)",
+                answer: "O",
+                explanation: "자본금 감소는 회사의 자본적 기초에 중대한 영향을 미치므로 주주총회 특별결의가 필요하며, 채권자의 이익을 보호하기 위한 절차를 반드시 거쳐야 합니다. (상법 제439조, 제440조, 제441조)"
+            },
+            {
+                question: "자본금 감소는 실질적 감소와 형식적 감소로 나눌 수 있으며, 실질적 감소는 자산의 감소를 수반한다. (O/X)",
+                answer: "O",
+                explanation: "자본금 감소는 실질적인 감소(환급 또는 상환)와 형식적인 감소(결손 보전)로 구분됩니다. 실질적 감소는 자산의 유출을 수반합니다."
+            },
+            {
+                question: "주식의 병합은 여러 개의 주식을 합하여 적은 수의 주식으로 만드는 것을 의미하며, 자본금은 변동이 없다. (O/X)",
+                answer: "X",
+                explanation: "주식의 병합은 여러 개의 주식을 합하여 적은 수의 주식으로 만드는 것은 맞지만, 이는 자본금을 감소시키기 위한 수단으로 사용될 수 있습니다. (감자를 수반하는 경우 자본금 변동)"
+            },
+            {
+                question: "주식의 분할은 1개의 주식을 여러 개의 주식으로 나누는 것을 의미하며, 자본금은 변동이 없다. (O/X)",
+                answer: "O",
+                explanation: "주식의 분할은 1개의 주식을 여러 개의 주식으로 나누는 것이며, 이는 발행주식총수는 증가하지만, 자본금은 변동이 없습니다. (상법 제346조의2)"
+            },
+            {
+                question: "회사의 합병은 2개 이상의 회사가 결합하여 새로운 하나의 회사가 되는 것을 말한다. (O/X)",
+                answer: "X",
+                explanation: "합병은 2개 이상의 회사가 결합하여 새로운 하나의 회사가 되거나(신설합병), 한 회사가 다른 회사를 흡수하여 기존 회사가 존속하는 것(흡수합병)을 모두 포함합니다."
+            },
+            {
+                question: "합병은 흡수합병과 신설합병으로 구분되며, 흡수합병은 소멸회사가 존속회사에 흡수되는 방식이다. (O/X)",
+                answer: "O",
+                explanation: "합병은 흡수합병(존속회사가 소멸회사를 흡수)과 신설합병(새로운 회사를 설립하여 모든 회사가 소멸하고 새로운 회사에 합쳐짐)으로 구분됩니다. (상법 제520조)"
+            },
+            {
+                question: "합병은 주주총회의 특별결의를 거쳐야 하며, 합병계약서를 작성하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "회사의 합병은 중요한 사항이므로 주주총회의 특별결의가 필요하며, 합병에 대한 합병계약서를 작성해야 합니다. (상법 제522조)"
+            },
+            {
+                question: "합병 시 채권자 보호 절차는 합병의 효력발생 요건이 아니다. (O/X)",
+                answer: "X",
+                explanation: "합병 시 채권자 보호 절차(채권자 이의 제출 공고 및 통지, 채권자 보호 조치)는 합병의 효력발생 요건입니다. 이를 이행하지 않으면 합병의 효력이 발생하지 않습니다. (상법 제527조의5)"
+            },
+            {
+                question: "회사의 분할은 하나의 회사를 2개 이상의 회사로 나누는 것을 의미하며, 자본금 감소를 수반할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "회사의 분할은 하나의 회사를 2개 이상의 회사로 나누는 것으로, 분할되는 부분에 따라 자본금이 감소할 수 있습니다."
+            },
+            {
+                question: "분할은 단순분할, 분할합병, 물적분할로 구분된다. (O/X)",
+                answer: "O",
+                explanation: "분할은 단순분할(회사를 분할하여 그 일부 또는 전부를 신설회사에 이전하고 기존 회사는 존속 또는 소멸), 분할합병(회사를 분할하여 그 일부를 다른 회사에 합병), 물적분할(분할회사가 분할신설회사의 주식 전부를 소유) 등으로 구분됩니다. (상법 제530조의2 이하)"
+            },
+            {
+                question: "회사의 해산은 회사의 법인격을 소멸시키는 것으로서, 해산 사유가 발생하면 자동으로 해산된다. (O/X)",
+                answer: "X",
+                explanation: "해산 사유가 발생한다고 해서 즉시 법인격이 소멸하는 것이 아니라, 해산 등기를 하고 청산 절차를 거쳐 청산종결 등기가 완료되어야 법인격이 소멸됩니다."
+            },
+            {
+                question: "회사의 해산 사유에는 정관으로 정한 해산 사유의 발생, 존립기간의 만료, 주주총회의 해산 결의 등이 있다. (O/X)",
+                answer: "O",
+                explanation: "상법에 명시된 회사의 해산 사유로는 정관으로 정한 사유 발생, 존립기간 만료, 주주총회 해산 결의, 합병, 파산 등이 있습니다. (상법 제517조)"
+            },
+            {
+                question: "해산된 회사는 청산의 목적 범위 내에서 존속하며, 청산절차를 거쳐 완전히 소멸한다. (O/X)",
+                answer: "O",
+                explanation: "해산된 회사는 청산의 목적 범위 내에서는 법인격이 존속하며, 청산 절차가 완료되어야 완전히 소멸합니다. (상법 제245조, 제542조)"
+            },
+            {
+                question: "청산인은 회사의 재산을 정리하고 채무를 변제하며 잔여재산을 분배하는 업무를 수행한다. (O/X)",
+                answer: "O",
+                explanation: "청산인은 해산된 회사의 재산을 관리하고 채무를 변제하며, 잔여재산을 주주에게 분배하는 등 청산사무를 담당합니다. (상법 제254조)"
+            },
+            {
+                question: "청산인은 주주총회의 결의로 선임하며, 반드시 이사 중에서 선임할 필요는 없다. (O/X)",
+                answer: "O",
+                explanation: "청산인은 정관에 정함이 없으면 주주총회의 보통결의로 선임합니다. 반드시 이사 중에서 선임할 필요는 없습니다. (상법 제531조)"
+            },
+            {
+                question: "청산인의 임무는 청산사무의 완결과 함께 종료되며, 청산종결 등기를 함으로써 완전히 소멸한다. (O/X)",
+                answer: "O",
+                explanation: "청산인의 임무는 청산사무가 완료되면 종료되며, 청산종결 등기를 함으로써 회사의 법인격은 완전히 소멸합니다. (상법 제542조)"
+            },
+            {
+                question: "유한회사는 1인 이상의 사원으로 구성되며, 사원은 그 출자좌수에 따라 책임을 진다. (O/X)",
+                answer: "O",
+                explanation: "유한회사는 1인 이상의 사원으로 구성될 수 있으며, 사원은 그 출자좌수를 한도로 유한책임을 집니다. (상법 제543조, 제551조)"
+            },
+            {
+                question: "유한회사의 출자 1좌의 금액은 100원 이상으로 하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "유한회사의 1좌의 금액은 100원 이상으로 해야 한다는 규정은 2011년 상법 개정으로 삭제되었습니다. 현재는 정관으로 자유롭게 정할 수 있습니다."
+            },
+            {
+                question: "유한회사의 사원총회는 주식회사의 주주총회와 유사한 기능을 수행한다. (O/X)",
+                answer: "O",
+                explanation: "유한회사의 사원총회는 사원의 최고 의사결정기관으로서 주식회사의 주주총회와 유사한 역할을 합니다. (상법 제570조)"
+            },
+            {
+                question: "유한회사는 이사를 두어야 하며, 감사는 두지 않아도 무방하다. (O/X)",
+                answer: "O",
+                explanation: "유한회사는 1명 또는 여러 명의 이사를 두어야 하지만, 감사는 정관 또는 사원총회 결의로 두지 않을 수 있습니다. (상법 제561조, 제568조)"
+            },
+            {
+                question: "유한회사의 사원 지분은 자유롭게 양도할 수 있으며, 정관으로 양도를 제한할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "유한회사의 사원 지분은 정관으로 양도를 제한할 수 있으며, 다른 사원 전원의 동의가 있어야 양도할 수 있는 경우도 있습니다. (상법 제556조)"
+            },
+            {
+                question: "합명회사의 사원은 전원이 업무집행권을 가지고 있으며, 각 사원은 회사를 대표한다. (O/X)",
+                answer: "O",
+                explanation: "합명회사는 사원 전원이 업무집행과 대표권을 가집니다. (상법 제200조, 제207조)"
+            },
+            {
+                question: "합명회사의 사원은 회사의 채무에 대하여 무한연대책임을 진다. (O/X)",
+                answer: "O",
+                explanation: "합명회사의 사원은 회사의 채무에 대하여 직접, 연대, 무한책임을 집니다. (상법 제212조)"
+            },
+            {
+                question: "합자회사의 무한책임사원은 업무집행권을 가지며 회사를 대표하지만, 유한책임사원은 업무집행권을 가지지 않는다. (O/X)",
+                answer: "O",
+                explanation: "합자회사에서 무한책임사원은 업무집행권과 대표권을 가지지만, 유한책임사원은 업무집행권이 없습니다. (상법 제271조, 제277조)"
+            },
+            {
+                question: "유한책임회사는 사원 전원이 출자금액을 한도로 책임을 지는 회사 형태이다. (O/X)",
+                answer: "O",
+                explanation: "유한책임회사의 사원은 출자금액을 한도로 책임을 지는 유한책임사원으로만 구성됩니다. (상법 제287조의2)"
+            },
+            {
+                question: "유한책임회사는 정관에 사원의 종류와 각 사원의 책임 한도를 기재하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "유한책임회사의 사원은 모두 출자금액 한도로 책임을 지므로, 정관에 '사원의 종류'를 기재할 필요가 없습니다. 또한 '책임 한도'는 출자금액으로 자동적으로 정해지므로 별도 기재사항이 아닙니다. (상법 제287조의2)"
+            },
+            {
+                question: "유한책임회사는 업무집행자를 두어야 하며, 업무집행자는 사원 중에서 선임한다. (O/X)",
+                answer: "X",
+                explanation: "유한책임회사는 업무집행자를 두어야 하지만, 반드시 사원 중에서 선임해야 하는 것은 아닙니다. 사원이 아닌 자도 업무집행자가 될 수 있습니다. (상법 제287조의6)"
+            },
+            {
+                question: "유한책임회사의 사원 지분 양도는 다른 사원의 동의가 있어야 한다. (O/X)",
+                answer: "O",
+                explanation: "유한책임회사의 사원 지분 양도는 다른 사원 전원의 동의가 있어야 합니다. (상법 제287조의7)"
+            },
+            {
+                question: "지배인의 선임은 회사의 이사회 또는 대표이사의 권한에 속한다. (O/X)",
+                answer: "O",
+                explanation: "지배인의 선임과 해임은 이사회가 결정합니다. 대표이사에게 선임 권한이 있다고 볼 수도 있습니다. (상법 제10조)"
+            },
+            {
+                question: "지배인은 영업에 관하여 재판상 또는 재판 외의 모든 행위를 할 권한이 있다. (O/X)",
+                answer: "O",
+                explanation: "지배인은 영업주를 대신하여 영업에 관한 재판상 또는 재판 외의 모든 행위를 할 수 있습니다. (상법 제11조 제1항)"
+            },
+            {
+                question: "지배인의 대리권에 대한 제한은 선의의 제3자에게 대항할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "지배인의 대리권에 대한 제한은 등기하지 않으면 선의의 제3자에게 대항할 수 없습니다. (상법 제11조 제2항)"
+            },
+            {
+                question: "상업사용인은 회사의 영업에 관한 일정한 사항에 관하여 대리권이 있는 자이다. (O/X)",
+                answer: "O",
+                explanation: "상업사용인은 영업주를 위하여 상업상의 영업에 관한 일정한 사항에 한하여 대리권이 있는 자를 말합니다. (상법 제15조 이하)"
+            },
+            {
+                question: "부분적 포괄대리권을 가진 사용인은 특정 영업 또는 특정 사항에 관하여 재판상 또는 재판 외의 모든 행위를 할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "부분적 포괄대리권을 가진 사용인은 특정 영업 또는 특정 사항에 관하여 재판 외의 모든 행위를 할 수 있습니다. 재판상 행위는 특별수권을 요합니다. (상법 제15조, 제16조)"
+            },
+            {
+                question: "물적회사의 설립등기는 창설적 효력이 있는 반면, 인적회사의 설립등기는 대항적 효력이 있다. (O/X)",
+                answer: "O",
+                explanation: "주식회사와 같은 물적회사의 설립등기는 회사의 법인격을 '창설'하는 효력이 있고, 합명회사와 같은 인적회사의 설립등기는 제3자에게 '대항'하기 위한 효력(대항적 효력)이 있습니다."
+            },
+            {
+                question: "주식회사의 이사가 그 임무를 게을리하여 회사에 손해를 가한 때에는 회사에 대하여 손해배상책임을 진다. (O/X)",
+                answer: "O",
+                explanation: "이사가 법령 또는 정관에 위반한 행위를 하거나 그 임무를 게을리하여 회사에 손해를 끼친 경우 회사에 대해 손해배상책임을 집니다. (상법 제399조)"
+            },
+            {
+                question: "이사의 회사에 대한 손해배상책임은 주주총회의 특별결의로 면제할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "이사의 회사에 대한 손해배상책임은 총주주의 동의가 아닌, 주주총회의 보통결의로 감면할 수 있습니다. 다만, 감면의 한도가 있습니다. (상법 제400조)"
+            },
+            {
+                question: "이사의 제3자에 대한 손해배상책임은 고의 또는 중과실이 있는 경우에 한하여 인정된다. (O/X)",
+                answer: "O",
+                explanation: "이사가 고의 또는 중대한 과실로 그 임무를 게을리하여 제3자에게 손해를 가한 때에는 제3자에 대하여 손해배상책임을 집니다. (상법 제401조)"
+            },
+            {
+                question: "회사는 주식의 종류를 달리하여 발행하는 경우, 각 종류주식의 내용과 종류주식의 총수를 정관에 기재하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "종류주식을 발행하는 경우, 그 종류주식의 내용(이익배당, 잔여재산분배, 의결권 등)과 총수를 정관에 기재해야 합니다. (상법 제344조)"
+            },
+            {
+                question: "종류주식의 주주에게 손해를 미치게 될 때에는 종류주주총회의 결의를 거쳐야 한다. (O/X)",
+                answer: "O",
+                explanation: "어느 종류의 주주에게 손해를 미치게 되는 경우에는 그 종류주주총회의 결의 외에 주주총회의 특별결의가 있어야 합니다. (상법 제344조의3)"
+            },
+            {
+                question: "이사의 보수 총액은 정관에 정함이 없으면 주주총회의 보통결의로 정한다. (O/X)",
+                answer: "O",
+                explanation: "이사의 보수는 정관에 정관으로 정하지 않은 경우 주주총회의 보통결의로 결정합니다. (상법 제388조)"
+            },
+            {
+                question: "회사의 주주가 발행주식총수의 100분의 3 이상에 해당하는 주식을 가진 경우, 이사의 해임을 법원에 청구할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "발행주식총수의 100분의 3 이상에 해당하는 주식을 가진 주주는 이사의 해임을 주주총회에 '안건으로 제안'할 수 있습니다 (의안제안권). 법원에 해임을 청구하는 것은 이사의 직무집행정지 가처분이나 해임의 소 등을 의미하며, 직접 해임을 청구하는 것은 아닙니다. (상법 제363조의2, 제385조)"
+            },
+            {
+                question: "회사의 자본금을 감소하는 경우, 주주총회의 특별결의를 거쳐야 하며, 채권자 보호 절차를 이행하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "자본금 감소는 중요한 사항이므로 주주총회 특별결의와 함께 채권자 보호 절차를 이행해야 합니다. (상법 제438조, 제439조)"
+            },
+            {
+                question: "회사의 정관은 공증인의 인증을 받음으로써 효력이 발생하나, 주식회사의 설립 시 발기인이 작성하는 정관은 예외이다. (O/X)",
+                answer: "X",
+                explanation: "주식회사의 설립 시 발기인이 작성하는 정관(원시정관)은 반드시 공증인의 인증을 받아야 효력이 발생합니다. 다만, 자본금 10억 미만 소규모 발기설립회사는 예외입니다. (상법 제292조)"
+            },
+            {
+                question: "전환사채는 사채권자의 청구에 의하여 주식으로 전환될 수 있는 사채이다. (O/X)",
+                answer: "O",
+                explanation: "전환사채는 사채권자의 청구에 따라 주식으로 전환될 수 있는 권리가 부여된 사채입니다. (상법 제513조)"
+            },
+            {
+                question: "신주인수권부사채는 사채권자가 일정한 조건에 따라 신주를 인수할 수 있는 권리가 부여된 사채이다. (O/X)",
+                answer: "O",
+                explanation: "신주인수권부사채는 사채권자가 사채와는 별도로 회사의 신주를 인수할 수 있는 권리가 부여된 사채입니다. (상법 제516조의2)"
+            },
+            {
+                question: "회사는 주주총회의 특별결의로 이사 또는 감사에게 일정한 범위 내에서 자기주식을 양도할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "회사가 이사 또는 감사에게 자기주식을 양도할 수 있다는 규정은 없습니다. 자기주식은 원칙적으로 주주에게 균등한 기회를 제공하여 매수하거나, 자본금 감소 시 소각하는 등의 용도로 활용됩니다."
+            },
+            {
+                question: "합병으로 인하여 소멸하는 회사의 채권자는 합병에 반대하는 경우, 회사에 대하여 자신의 채권을 변제할 것을 청구할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "합병은 채권자에게 불이익을 줄 수 있으므로, 합병에 반대하는 채권자는 회사에 대해 자신의 채무 변제를 청구할 수 있는 채권자 보호 절차가 있습니다. (상법 제527조의5)"
+            },
+            {
+                question: "회사의 분할합병의 경우, 분할되는 회사의 주주에게 주식을 배정하지 않고 분할합병의 상대방 회사의 주식을 배정할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "분할합병 시 분할되는 부분의 주주에게 분할합병의 상대방 회사의 주식을 배정할 수 있습니다. (상법 제530조의5)"
+            },
+            {
+                question: "회사의 해산 및 청산 절차에서 청산인은 채무를 변제하기 전에 주주에게 잔여재산을 분배할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "청산인은 채무를 모두 변제한 후에야 잔여재산이 있다면 이를 주주에게 분배할 수 있습니다. 채무 변제 전 잔여재산 분배는 금지됩니다. (상법 제260조, 제539조)"
+            },
+            {
+                question: "주식회사는 주주총회의 결의로 해산할 수 있으며, 이는 해산의 유일한 방법이다. (O/X)",
+                answer: "X",
+                explanation: "주주총회 결의 외에도 정관으로 정한 사유 발생, 존립기간 만료, 합병, 파산, 법원의 명령 또는 판결 등 다양한 해산 사유가 있습니다. (상법 제517조)"
+            },
+            {
+                question: "회사의 종류 변경은 주주총회의 특별결의로 가능하다. (O/X)",
+                answer: "O",
+                explanation: "회사의 종류 변경은 정관 변경 사항이며, 이는 주주총회의 특별결의사항입니다. (상법 제93조 이하, 제434조)"
+            },
+            {
+                question: "주식회사가 유한책임회사로 조직변경하는 경우, 사원 전원의 동의가 필요하다. (O/X)",
+                answer: "X",
+                explanation: "주식회사가 유한회사로 조직변경할 때에는 총 주주의 동의와 채권자 보호 절차가 필요합니다. 유한책임회사로의 변경은 상법상 직접적인 규정이 없지만, 유사하게 주주 전원의 동의 또는 총 주주의 동의를 요할 수 있습니다. (상법 제604조 참조)"
+            },
+            {
+                question: "이사회는 정관에 다른 규정이 없으면 이사 과반수의 출석과 출석이사 과반수의 찬성으로 결의한다. (O/X)",
+                answer: "O",
+                explanation: "이사회 결의는 정관에 다른 규정이 없는 한, 이사 과반수의 출석과 출석이사 과반수의 찬성으로 합니다. (상법 제391조)"
+            },
+            {
+                question: "대표이사가 수인인 경우, 각 대표이사는 단독으로 회사를 대표할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "대표이사가 수인인 경우에도 각 대표이사는 단독으로 회사를 대표할 수 있습니다. 다만, 정관이나 이사회 결의로 공동대표이사를 정할 수 있습니다. (상법 제389조 제2항)"
+            },
+            {
+                question: "감사는 주주총회 소집을 청구할 수 있으며, 이사가 이에 응하지 않는 경우 법원의 허가를 받아 소집할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "감사는 주주총회 소집을 청구할 수 있고, 이사가 소집하지 않는 경우 법원의 허가를 받아 소집할 수 있습니다. (상법 제391조의3 제1항, 제2항)"
+            },
+            {
+                question: "이사의 해임은 주주총회 보통결의로 가능하다. (O/X)",
+                answer: "X",
+                explanation: "이사의 해임은 주주총회의 특별결의사항입니다. (상법 제385조 제1항, 제434조)"
+            },
+            {
+                question: "회사가 법령 또는 정관을 위반한 행위를 하는 경우, 주주는 유지청구권을 행사하여 그 행위의 정지를 청구할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "회사가 법령 또는 정관에 위반한 행위를 하여 주주의 이익에 회복할 수 없는 손해가 생길 염려가 있는 경우, 주주는 유지청구권을 행사하여 그 행위의 정지를 청구할 수 있습니다. (상법 제402조)"
+            },
+            {
+                question: "주주는 주식회사의 이사에 대하여 회사에 대한 손해배상책임의 추궁을 청구할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "주주는 회사에 대하여 이사의 책임을 추궁할 소의 제기를 청구할 수 있습니다 (대표소송제도). (상법 제403조)"
+            },
+            {
+                question: "주식회사가 신주를 발행하는 경우, 기존 주주에게 신주인수권을 부여하는 것이 원칙이다. (O/X)",
+                answer: "O",
+                explanation: "기존 주주의 지분율 유지를 위해 신주발행 시에는 기존 주주에게 우선적으로 신주인수권을 부여하는 것이 원칙입니다. (상법 제418조 제1항)"
+            },
+            {
+                question: "주주총회는 이사 선임에 관하여 정관으로 그 자격을 제한할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "정관으로 이사의 자격을 제한할 수 있습니다. 다만, 정당한 제한이어야 합니다."
+            },
+            {
+                question: "주주총회는 감사의 선임에 관하여 정관으로 그 자격을 제한할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "마찬가지로 정관으로 감사의 자격을 제한할 수 있습니다."
+            },
+            {
+                question: "이사의 자기거래는 이사회의 승인을 얻어야 하며, 이 경우 해당 이사는 이사회 결의에 참여할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "이사가 자기 또는 제3자의 계산으로 회사와 거래를 하기 위해서는 이사회의 승인을 얻어야 하며, 이 경우 해당 이사는 이사회 결의에 참여할 수 없습니다. (상법 제398조)"
+            },
+            {
+                question: "감사위원회는 사외이사로만 구성되어야 하며, 상장회사의 경우 의무적으로 설치해야 한다. (O/X)",
+                answer: "X",
+                explanation: "감사위원회의 위원은 3명 이상이어야 하며, 위원의 3분의 2 이상은 사외이사이어야 합니다. 즉, 모든 위원이 사외이사일 필요는 없습니다. 다만, 일정 규모 이상의 상장회사는 의무적으로 설치해야 합니다. (상법 제415조의2 제2항)"
+            },
+            {
+                question: "자본금 감소의 효력은 감자등기를 함으로써 발생한다. (O/X)",
+                answer: "O",
+                explanation: "자본금 감소는 등기를 함으로써 그 효력이 발생합니다. (상법 제439조 제3항)"
+            },
+            {
+                question: "회사의 분할 시 채권자 보호 절차는 필요하지 않다. (O/X)",
+                answer: "X",
+                explanation: "회사의 분할은 합병과 마찬가지로 채권자에게 중대한 영향을 미칠 수 있으므로, 채권자 보호 절차가 반드시 필요합니다. (상법 제530조의9)"
+            },
+            {
+                question: "회사가 해산된 경우, 그 법인격은 즉시 소멸된다. (O/X)",
+                answer: "X",
+                explanation: "회사가 해산된 경우에도 청산의 목적 범위 내에서 법인격이 존속하며, 청산절차가 완료되어 청산종결등기가 되어야 법인격이 완전히 소멸됩니다."
+            },
+            {
+                question: "청산인은 회사의 대표기관으로서, 청산사무의 집행에 관하여 회사를 대표한다. (O/X)",
+                answer: "O",
+                explanation: "청산인은 청산하는 회사의 업무집행기관이자 대표기관으로서, 청산사무에 관하여 회사를 대표합니다. (상법 제254조)"
+            },
+            {
+                question: "유한회사는 이사를 선임하지 않아도 무방하다. (O/X)",
+                answer: "X",
+                explanation: "유한회사는 반드시 1명 또는 여러 명의 이사를 두어야 합니다. (상법 제561조)"
+            },
+            {
+                question: "합명회사의 사원은 사망하면 당연히 탈퇴한다. (O/X)",
+                answer: "O",
+                explanation: "합명회사의 사원은 사망하면 당연히 회사에서 탈퇴합니다. (상법 제218조)"
+            },
+            {
+                question: "합자회사의 유한책임사원은 회사의 영업에 관하여 제3자에 대하여 대외적으로 대표권이 있다. (O/X)",
+                answer: "X",
+                explanation: "합자회사의 유한책임사원은 업무집행권이 없으므로, 원칙적으로 대외적인 대표권도 없습니다. (상법 제277조)"
+            },
+            {
+                question: "유한책임회사의 업무집행자가 수인인 경우, 각 업무집행자는 단독으로 회사를 대표할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "유한책임회사의 업무집행자가 여러 명인 경우, 정관에 다른 규정이 없으면 각 업무집행자가 단독으로 회사를 대표합니다. (상법 제287조의6 제2항)"
+            },
+            {
+                question: "지배인은 회사의 영업에 관한 사항 외에 개인적인 사무를 처리할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "지배인은 '영업에 관한' 모든 행위를 할 수 있는 대리권을 가지며, 개인적인 사무를 처리할 권한은 없습니다."
+            },
+            {
+                question: "상업사용인은 영업주의 허락 없이는 자기 또는 제3자의 계산으로 영업주의 영업부류에 속하는 거래를 할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "상업사용인에게는 경업금지의무가 부과됩니다. 영업주의 허락 없이는 동종 영업을 하거나 동종 영업을 목적으로 하는 회사의 무한책임사원 등이 될 수 없습니다. (상법 제17조)"
+            },
+            {
+                question: "주식회사의 경우, 발기인이 현물출자를 하는 때에는 검사인의 조사를 거쳐야 한다. (O/X)",
+                answer: "O",
+                explanation: "주식회사의 설립 시 현물출자가 있는 경우, 검사인의 조사를 거쳐 법원에 보고해야 합니다. 다만, 공인된 감정인의 감정으로 갈음하거나, 변호사 등 전문가의 확인으로 대체될 수 있는 경우도 있습니다. (상법 제299조)"
+            },
+            {
+                question: "주주총회 소집통지는 의결권 없는 주주에게도 발송하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "주주총회 소집통지는 의결권 유무를 불문하고 주주명부에 기재된 모든 주주에게 발송해야 합니다. (상법 제363조 제1항)"
+            },
+            {
+                question: "[문제 151] 주식회사의 이사회가 설치되지 않는 경우에도 감사위원회는 반드시 설치해야 한다. (O/X)",
+                answer: "X",
+                explanation: "감사위원회는 이사회 내 위원회이므로, 이사회가 설치되지 않는 소규모 회사의 경우에는 감사위원회를 설치할 수 없습니다. 감사위원회는 이사를 전제로 합니다."
+            },
+            {
+                question: "[문제 152] 주식회사의 설립 시 주식발행사항은 정관에 기재하거나 발기인 전원의 동의로 결정한다. (O/X)",
+                answer: "O",
+                explanation: "발행할 주식의 총수 및 1주의 금액은 정관의 절대적 기재사항이며, 그 외의 발행사항은 정관에 규정하거나 발기인 전원의 동의로 결정합니다. (상법 제289조, 제291조)"
+            },
+            {
+                question: "[문제 153] 주식회사의 주주는 유한책임을 지므로, 회사가 파산하더라도 주주는 추가적인 책임을 부담하지 않는다. (O/X)",
+                answer: "O",
+                explanation: "주식회사의 주주는 자신이 인수한 주식의 인수가액을 한도로 유한책임을 지므로, 회사의 채무에 대해 직접적인 책임을 지지 않습니다."
+            },
+            {
+                question: "[문제 154] 전환사채를 주식으로 전환한 경우, 기존 사채는 소멸하고 새로운 주식이 발행된다. (O/X)",
+                answer: "O",
+                explanation: "전환사채가 주식으로 전환되면 사채는 소멸하고 그에 상응하는 주식이 발행됩니다."
+            },
+            {
+                question: "[문제 155] 신주인수권부사채의 경우, 사채권자가 신주인수권을 행사하더라도 사채 자체가 소멸하는 것은 아니다. (O/X)",
+                answer: "O",
+                explanation: "신주인수권부사채는 사채권자가 신주인수권을 행사하더라도 사채 자체는 여전히 존속하며, 사채와 신주인수권이 분리되어 거래될 수 있습니다."
+            },
+            {
+                question: "[문제 156] 주식회사의 주주가 아닌 자도 정관에 따라 이사가 될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "이사는 주주로 한정되지 않으며, 정관에 특별한 정함이 없으면 주주가 아닌 자도 이사가 될 수 있습니다."
+            },
+            {
+                question: "[문제 157] 이사회의사록은 주주총회의사록과 달리 공증인의 인증을 받을 필요가 없다. (O/X)",
+                answer: "O",
+                explanation: "이사회의사록은 작성 후 의장이 기명날인 또는 서명하고, 이사 및 감사가 기명날인 또는 서명해야 하지만, 공증인의 인증까지는 필요 없습니다. (상법 제391조의3)"
+            },
+            {
+                question: "[문제 158] 회사가 발행하는 신주인수권증서는 타인에게 양도할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "신주인수권증서는 유가증권으로서 양도가 가능합니다. (상법 제420조의2)"
+            },
+            {
+                question: "[문제 159] 유한회사의 사원은 정관으로 사원 상호 간의 지분 양도를 제한할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "유한회사는 정관으로 사원 상호 간의 지분 양도를 제한할 수 있습니다. (상법 제556조)"
+            },
+            {
+                question: "[문제 160] 합명회사의 사원은 임의 탈퇴가 허용되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "합명회사의 사원은 원칙적으로 언제든지 임의로 탈퇴할 수 있습니다. 다만, 부득이한 사유가 있는 경우에 법원에 청구하여 탈퇴할 수도 있습니다. (상법 제217조)"
+            },
+            {
+                question: "[문제 161] 합자회사의 유한책임사원은 그 출자액을 한도로 회사 채무에 대한 책임을 진다. (O/X)",
+                answer: "O",
+                explanation: "유한책임사원은 출자액을 한도로 회사 채무에 대한 책임을 지고, 무한책임사원은 무한책임을 집니다."
+            },
+            {
+                question: "[문제 162] 주식회사의 이사가 여러 명인 경우, 각 이사는 회사를 대표하는 권한을 가진다. (O/X)",
+                answer: "X",
+                explanation: "주식회사에서 이사가 여러 명인 경우, 대표권은 '대표이사'에게 부여됩니다. 각 이사가 개별적으로 회사를 대표하는 것이 아닙니다."
+            },
+            {
+                question: "[문제 163] 감사의 직무를 수행하는 데 필요한 비용은 회사가 부담하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "감사의 직무 수행에 필요한 비용은 회사가 부담해야 합니다. (상법 제414조)"
+            },
+            {
+                question: "[문제 164] 회사가 발행한 채권은 유가증권으로서 양도할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "회사가 발행하는 채권(사채)은 유가증권으로서 특별한 제한이 없는 한 양도할 수 있습니다."
+            },
+            {
+                question: "[문제 165] 주주총회의 소집권자는 원칙적으로 이사회가 아니라 대표이사이다. (O/X)",
+                answer: "X",
+                explanation: "주주총회의 소집은 이사회의 결의에 의합니다. 대표이사가 이사회의 결의를 거쳐 주주총회를 소집하는 것입니다. (상법 제362조)"
+            },
+            {
+                question: "[문제 166] 주식회사는 주식매수선택권을 부여할 수 있으며, 이는 정관으로 정하는 바에 따라 주주총회의 특별결의로 한다. (O/X)",
+                answer: "O",
+                explanation: "주식매수선택권(스톡옵션)은 정관에 근거하여 주주총회 특별결의로 부여할 수 있습니다. (상법 제340조의2)"
+            },
+            {
+                question: "[문제 167] 주식회사가 해산하는 경우, 청산인은 법원의 선임을 통해서만 될 수 있다. (O/X)",
+                answer: "X",
+                explanation: "청산인은 정관으로 정하거나 주주총회 결의로 선임합니다. 법원이 선임하는 경우는 해산 후 청산인이 없거나 부적당한 때 등 예외적인 경우입니다. (상법 제531조)"
+            },
+            {
+                question: "[문제 168] 합병으로 인한 신주발행의 경우, 기존 주주에게 신주인수권을 부여할 필요가 없다. (O/X)",
+                answer: "O",
+                explanation: "합병으로 인한 신주발행은 기존 주주에게 신주인수권을 부여하는 일반적인 신주발행과 다릅니다. 이는 합병 비율에 따라 주식이 배정됩니다."
+            },
+            {
+                question: "[문제 169] 자본금 감소 시 채권자 보호 절차는 채권자에게 개별 통지할 필요 없이 공고만으로 충분하다. (O/X)",
+                answer: "X",
+                explanation: "자본금 감소 시 채권자 보호 절차는 '공고' 외에 알고 있는 채권자에게는 '개별 통지'도 해야 합니다. (상법 제232조 제2항, 제439조 제2항)"
+            },
+            {
+                question: "[문제 170] 유한책임회사의 업무집행자가 여러 명인 경우, 정관으로 공동대표를 정할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "유한책임회사의 업무집행자가 여러 명인 경우, 정관으로 공동대표를 정할 수 있습니다. (상법 제287조의6 제2항 단서)"
+            },
+            {
+                question: "[문제 171] 상업등기는 법정 등기사항에 한하여 할 수 있으며, 등기하지 않으면 제3자에게 대항할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "상업등기는 법정 등기사항에 한하여 하며, 등기하지 않으면 선의의 제3자에게 대항할 수 없습니다. (상법 제37조)"
+            },
+            {
+                question: "[문제 172] 상호는 등기하면 다른 사람이 동일한 상호를 사용할 수 없도록 절대적 보호를 받는다. (O/X)",
+                answer: "X",
+                explanation: "등기된 상호는 동일 특별시·광역시·시·군 내에서 동종 영업의 타인의 등기를 배제하는 효력이 있습니다. 절대적인 보호가 아니라 일정 범위 내에서 보호됩니다. (상법 제22조)"
+            },
+            {
+                question: "[문제 173] 주식회사의 설립 시 발기인은 회사의 채무에 대하여 유한책임을 진다. (O/X)",
+                answer: "X",
+                explanation: "발기인은 설립 과정에서 일정한 책임(주식인수 및 납입책임, 손해배상책임 등)을 지며, 이는 유한책임이 아닙니다. 설립된 회사에 대해서는 주주로서 유한책임을 집니다."
+            },
+            {
+                question: "[문제 174] 감사는 회사의 회계 장부와 재산 상태를 조사할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "감사는 이사의 직무집행을 감사하고, 회사의 업무와 회계에 대한 감사를 할 수 있습니다. 이를 위해 회계 장부와 재산 상태를 조사할 수 있습니다. (상법 제413조)"
+            },
+            {
+                question: "[문제 175] 합병계약서는 주주총회 소집통지 시 주주에게 교부되어야 한다. (O/X)",
+                answer: "O",
+                explanation: "합병을 위한 주주총회 소집통지 시에는 합병계약서의 주요 내용을 기재하거나 합병계약서 사본을 첨부하여 주주에게 교부해야 합니다. (상법 제522조의2)"
+            },
+            {
+                question: "[문제 176] 주식의 질권 설정은 주권의 교부에 의하여 이루어진다. (O/X)",
+                answer: "O",
+                explanation: "주식에 대한 질권의 설정은 주권의 교부에 의하여 효력이 생깁니다. (상법 제338조 제1항)"
+            },
+            {
+                question: "[문제 177] 주식회사는 주식배당을 할 수 있으며, 이 경우 현금배당과 동일하게 주주총회의 승인을 얻어야 한다. (O/X)",
+                answer: "O",
+                explanation: "주식배당은 현금배당과 마찬가지로 주주총회의 결의를 통해 이루어집니다. (상법 제462조의2)"
+            },
+            {
+                question: "[문제 178] 유한회사의 사원 지분은 자유롭게 양도할 수 있으나, 정관으로 양도를 제한할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "유한회사의 사원 지분은 정관으로 양도를 제한할 수 있으며, 실제로는 다른 사원 동의가 있어야 양도할 수 있는 경우가 많습니다. 주식회사의 주식 양도보다 제한이 많습니다. (상법 제556조)"
+            },
+            {
+                question: "[문제 179] 상장회사의 경우, 사외이사 총수는 이사 총수의 과반수가 되어야 한다. (O/X)",
+                answer: "O",
+                explanation: "상장회사의 경우 이사 총수의 과반수가 사외이사이어야 합니다. (상법 제542조의8 제4항)"
+            },
+            {
+                question: "[문제 180] 회사의 본점을 이전하는 경우, 이사회의 결의만으로 충분하다. (O/X)",
+                answer: "X",
+                explanation: "본점 이전은 정관 변경 사항에 해당하므로 주주총회의 특별결의가 필요합니다. (상법 제433조, 제434조)"
+            },
+            {
+                question: "[문제 181] 회사는 주식의 종류를 전환할 수 있는 주식(전환주식)을 발행할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "회사는 정관에 따라 주식의 종류를 전환할 수 있는 전환주식을 발행할 수 있습니다. (상법 제346조)"
+            },
+            {
+                question: "[문제 182] 회사의 합병은 언제든지 철회할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "합병 계약은 주주총회 승인을 얻은 후에는 원칙적으로 철회할 수 없으며, 법령이 정한 특별한 사유가 있는 경우에만 가능합니다."
+            },
+            {
+                question: "[문제 183] 액면주식의 발행 시 발행가액이 액면금액보다 낮을 수는 없다. (O/X)",
+                answer: "X",
+                explanation: "원칙적으로 액면미달 발행은 금지되지만, 회사 성립 후 2년이 경과하고 주주총회 특별결의와 법원의 인가를 받으면 액면미달 발행이 가능합니다. (상법 제417조)"
+            },
+            {
+                question: "[문제 184] 청산 중인 회사도 여전히 법인격을 가진다. (O/X)",
+                answer: "O",
+                explanation: "회사는 해산해도 즉시 소멸하는 것이 아니라, 청산의 목적 범위 내에서 법인격이 존속합니다."
+            },
+            {
+                question: "[문제 185] 지배인의 선임은 반드시 등기하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "지배인의 선임은 등기사항이며, 이를 등기해야 제3자에게 대항할 수 있습니다. (상법 제10조)"
+            },
+            {
+                question: "[문제 186] 상업등기는 등기함으로써 효력이 발생하며, 등기하지 않으면 무효이다. (O/X)",
+                answer: "X",
+                explanation: "상업등기는 등기함으로써 대항력이 발생합니다. 등기하지 않아도 등기사항 자체의 효력이 무효가 되는 것은 아니지만, 선의의 제3자에게 대항할 수 없습니다 (대항력). (상법 제37조)"
+            },
+            {
+                question: "[문제 187] 주주총회의 특별결의는 보통결의보다 가중된 요건을 요구한다. (O/X)",
+                answer: "O",
+                explanation: "특별결의는 회사 운영에 중대한 영향을 미치는 사항에 대해 주주의 의사를 신중히 반영하기 위해 보통결의보다 더 높은 정족수를 요구합니다."
+            },
+            {
+                question: "[문제 188] 주식회사의 이사가 되는 자는 법률에 따라 반드시 일정한 자격을 갖추어야 한다. (O/X)",
+                answer: "X",
+                explanation: "상법상 이사에게 특별한 자격 제한은 없습니다. 다만, 정관으로 자격을 제한할 수 있습니다. (미성년자, 피성년후견인 등 제한)"
+            },
+            {
+                question: "[문제 189] 감사의 임기는 정관으로 단축할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "감사의 임기는 정관으로 단축할 수 있습니다. (상법 제410조)"
+            },
+            {
+                question: "[문제 190] 회사의 분할 시 주주총회의 특별결의가 필요하다. (O/X)",
+                answer: "O",
+                explanation: "회사의 분할은 회사의 조직을 변경하는 중대한 사항이므로 주주총회의 특별결의가 필요합니다. (상법 제530조의3)"
+            },
+            {
+                question: "[문제 191] 유한회사는 감사를 선임할 의무가 없다. (O/X)",
+                answer: "O",
+                explanation: "유한회사는 감사를 '둘 수 있다'고 규정되어 있으므로, 선임할 의무는 없습니다. (상법 제568조)"
+            },
+            {
+                question: "[문제 192] 합명회사의 사원은 정관으로 특별히 정하지 않는 한, 회사 채무에 대하여 유한책임을 진다. (O/X)",
+                answer: "X",
+                explanation: "합명회사의 사원은 정관의 규정과 상관없이 회사의 채무에 대하여 무한연대책임을 집니다."
+            },
+            {
+                question: "[문제 193] 주식의 소각은 주식 자체를 없애는 것이므로, 자본금 감소를 수반한다. (O/X)",
+                answer: "O",
+                explanation: "주식의 소각은 발행된 주식을 감소시키는 행위이며, 원칙적으로 자본금 감소를 수반합니다. (상법 제343조)"
+            },
+            {
+                question: "[문제 194] 주주명부의 명의개서는 주권이 발행된 주식에만 해당된다. (O/X)",
+                answer: "X",
+                explanation: "주주명부의 명의개서는 주권이 발행되지 않은 경우에도 해당되며, 전자등록주식의 경우에도 전자등록부에 기재함으로써 명의개서의 효력이 발생합니다."
+            },
+            {
+                question: "[문제 195] 상법상 회사의 지점 설치는 이사회의 결의사항이다. (O/X)",
+                answer: "O",
+                explanation: "회사의 지점 설치 및 이전, 폐지는 이사회의 결의사항입니다. (상법 제393조 제1항)"
+            },
+            {
+                question: "[문제 196] 유한회사의 사원은 업무집행권을 가질 수 있다. (O/X)",
+                answer: "O",
+                explanation: "유한회사는 사원이 직접 업무집행을 할 수도 있고, 이사를 선임하여 업무를 집행하게 할 수도 있습니다. (상법 제562조)"
+            },
+            {
+                question: "[문제 197] 주주총회의 특별결의는 재적 주주 전원의 동의를 얻어야 한다. (O/X)",
+                answer: "X",
+                explanation: "주주총회 특별결의는 출석한 주주의 의결권의 3분의 2 이상과 발행주식총수의 3분의 1 이상의 수로 합니다. 재적 주주 전원의 동의는 특수결의에 해당하며 매우 드문 경우입니다."
+            },
+            {
+                question: "[문제 198] 주식회사의 이사가 여러 명인 경우, 대표이사 외의 이사는 회사에 대한 업무집행권이 없다. (O/X)",
+                answer: "X",
+                explanation: "대표이사 외의 이사도 이사회 결의에 따라 회사 업무를 집행할 권한이 있습니다. 다만, 대외적으로 회사를 대표하는 권한은 없습니다."
+            },
+            {
+                question: "[문제 199] 감사는 이사와 겸직할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "감사는 이사와 상호 감시와 견제의 관계에 있으므로, 이사와 감사는 겸직할 수 없습니다. (상법 제411조)"
+            },
+            {
+                question: "[문제 200] 회사의 합병 시 소멸하는 회사의 주주에게는 존속하는 회사의 주식이 배정되어야 한다. (O/X)",
+                answer: "O",
+                explanation: "흡수합병의 경우 소멸하는 회사의 주주에게 존속하는 회사의 주식(또는 그 외의 대가)이 배정됩니다. (상법 제523조)"
+            },
+            {
+                question: "[문제 201] 주식회사의 주주는 언제든지 주식을 양도할 수 있으며, 이는 정관으로도 제한할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "주식 양도는 자유가 원칙이지만, 정관으로 이사회 승인을 받도록 하는 등 제한을 둘 수 있습니다. (상법 제335조 제1항 단서)"
+            },
+            {
+                question: "주식회사의 설립 시 발기인이 주식의 일부만 인수하는 것은 허용되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "모집설립의 경우 발기인은 주식의 일부만 인수하고 나머지는 모집합니다. 발기설립 시에만 발기인이 전부 인수합니다. (상법 제295조)"
+            },
+            {
+                question: "회사채는 주식과 달리 의결권이 없다. (O/X)",
+                answer: "O",
+                explanation: "회사채(사채)는 채무증권으로, 이자를 받고 원금을 상환받는 것이 목적이며, 주식처럼 의결권을 가지지 않습니다."
+            },
+            {
+                question: "유한책임회사의 사원은 정관으로 정하는 바에 따라 출자 외에 다른 재산을 회사에 출자할 의무를 부담할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "유한책임회사의 사원은 출자금액을 한도로 책임을 지므로, 출자 외에 다른 재산을 회사에 출자할 의무를 부담하게 할 수 없습니다. 이는 유한책임의 본질에 반합니다."
+            },
+            {
+                question: "지배인의 대리권은 선임된 지점에 한하여 효력이 미친다. (O/X)",
+                answer: "O",
+                explanation: "지배인은 선임된 지점의 영업에 관한 사항에 한하여 대리권이 효력이 미칩니다. (상법 제11조)"
+            },
+            {
+                question: "상법상 회사의 영업양도는 이사회의 결의만으로 충분하다. (O/X)",
+                answer: "X",
+                explanation: "영업의 전부 또는 중요한 일부의 양도는 주주총회의 특별결의가 필요합니다. (상법 제374조)"
+            },
+            {
+                question: "주식회사는 주주에게 이익배당 외에 중간배당을 할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "주식회사는 정관으로 정하는 바에 따라 영업연도 중에 이사회 결의로 중간배당을 할 수 있습니다. (상법 제462조의3)"
+            },
+            {
+                question: "주식회사의 이사는 회사에 손해가 발생하더라도 고의 또는 중과실이 없는 한 책임지지 않는다. (O/X)",
+                answer: "O",
+                explanation: "이사의 회사에 대한 손해배상책임은 고의 또는 과실이 있는 경우에 발생합니다. 특히 제3자에 대한 책임은 고의 또는 중과실이 있어야 합니다. (상법 제399조, 제401조)"
+            },
+            {
+                question: "회사의 청산인은 주주총회의 결의로 해임할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "청산인은 주주총회의 결의로 언제든지 해임할 수 있습니다. (상법 제537조)"
+            },
+            {
+                question: "합병으로 인하여 소멸하는 회사의 등기부에 기재된 사항은 모두 존속하는 회사에 승계된다. (O/X)",
+                answer: "O",
+                explanation: "합병은 포괄승계이므로 소멸회사의 모든 권리, 의무, 자산, 부채 등은 존속회사에 승계됩니다."
+            },
+            {
+                question: "주식회사는 본점 소재지 외의 곳에 지점을 설치할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "회사는 업무상 필요한 경우 본점 외의 장소에 지점을 설치할 수 있습니다."
+            },
+            {
+                question: "유한회사의 사원은 이사가 아닌 경우에도 업무집행권을 가질 수 있다. (O/X)",
+                answer: "O",
+                explanation: "유한회사는 사원 스스로 업무집행을 하는 것이 원칙이므로, 이사가 아닌 사원도 정관에 따라 업무집행권을 가질 수 있습니다."
+            },
+            {
+                question: "합명회사의 사원은 다른 사원의 동의 없이 지분을 양도할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "합명회사의 사원 지분 양도는 다른 사원 전원의 동의가 있어야 합니다. 이는 인적회사의 특성 때문입니다. (상법 제197조)"
+            },
+            {
+                question: "주주명부의 작성 및 비치는 이사의 의무사항이다. (O/X)",
+                answer: "O",
+                explanation: "이사는 주주명부를 작성하고 본점에 비치하여야 하며, 주주와 채권자는 열람 또는 등사를 청구할 수 있습니다. (상법 제352조)"
+            },
+            {
+                question: "자본금 감소는 발행주식수를 줄이거나 1주의 금액을 줄이는 방법으로 할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "자본금 감소는 주식 병합, 주식 소각, 1주의 금액 감소 등의 방법으로 할 수 있습니다. (상법 제439조)"
+            },
+            {
+                question: "상업등기는 공시의 원칙이 적용된다. (O/X)",
+                answer: "O",
+                explanation: "상업등기는 거래의 안전을 위해 등기된 사항을 일반에게 공시함으로써 신뢰를 보호하는 공시의 원칙이 적용됩니다."
+            },
+            {
+                question: "주식회사의 이사가 되는 자는 반드시 대한민국 국적을 가지고 있어야 한다. (O/X)",
+                answer: "X",
+                explanation: "이사의 자격에 국적 제한은 없습니다. 외국인도 주식회사 이사가 될 수 있습니다."
+            },
+            {
+                question: "감사위원회는 이사 중에서 선임하며, 독립적인 지위를 가진다. (O/X)",
+                answer: "O",
+                explanation: "감사위원회는 이사 중에서 선임하되, 사외이사가 3분의 2 이상이어야 하며, 이사회 내에서 독립적인 감사의 역할을 수행합니다."
+            },
+            {
+                question: "회사의 해산 시에는 잔여재산 분배 전 채권자들에게 채무를 변제해야 한다. (O/X)",
+                answer: "O",
+                explanation: "청산 절차에서 채무 변제는 잔여재산 분배에 우선합니다. (상법 제260조)"
+            },
+            {
+                question: "주식회사는 다른 회사와 합병하거나 다른 회사를 흡수합병할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "주식회사는 다른 회사와 합병하여 소멸하거나(피합병회사), 다른 회사를 흡수하여 존속할 수 있습니다(흡수합병). (상법 제174조, 제520조)"
+            },
+            {
+                question: "상법상 회사의 영업은 양도할 수 있으나, 양수인은 양도인의 채무를 승계하지 않는다. (O/X)",
+                answer: "X",
+                explanation: "영업양도의 경우 양수인은 원칙적으로 양도인의 채무를 승계하지 않지만, 상호를 계속 사용하는 경우 등에는 예외적으로 채무를 승계하는 것으로 봅니다. (상법 제42조)"
+            },
+            {
+                question: "주주총회의 소집절차에 하자가 있더라도 결의 내용이 적법하다면 그 결의는 유효하다. (O/X)",
+                answer: "X",
+                explanation: "주주총회 결의는 소집절차의 하자, 결의 방법의 하자, 결의 내용의 하자에 따라 각각 취소, 무효, 부존재의 사유가 될 수 있습니다. 소집절차의 하자가 있으면 결의취소의 소 대상이 됩니다. (상법 제376조)"
+            },
+            {
+                question: "유한회사의 사원은 간접적으로 회사 채무에 대한 책임을 진다. (O/X)",
+                answer: "X",
+                explanation: "유한회사의 사원은 '출자액을 한도로' 책임을 지는 것이지, 채무에 대해 직접 또는 간접적으로 책임지는 것이 아닙니다. 유한책임은 채무에 대한 책임이 아닌, 출자 이행 의무에 대한 책임입니다."
+            },
+            {
+                question: "주식회사는 주주총회의 결의로 법정준비금을 감소할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "법정준비금(자본준비금, 이익준비금)은 결손 보전을 위해 주주총회의 특별결의로 감소할 수 있습니다. (상법 제459조, 제460조)"
+            },
+            {
+                question: "지배인의 대리권은 법률에 의하여 정해지므로, 정관이나 이사회 결의로 이를 제한할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "지배인의 대리권은 법률에 의해 정해지지만, 이사회 결의 등으로 이를 제한할 수 있습니다. 다만, 그 제한은 등기하지 않으면 선의의 제3자에게 대항할 수 없습니다. (상법 제11조)"
+            },
+            {
+                question: "상업사용인은 영업주에게 손해를 가한 경우 그 손해를 배상할 책임이 없다. (O/X)",
+                answer: "X",
+                explanation: "상업사용인이 영업주의 업무를 수행하다가 고의 또는 과실로 영업주에게 손해를 가한 경우, 당연히 손해배상책임을 집니다."
+            },
+            {
+                question: "주식회사는 언제든지 유한회사로 조직변경할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "조직변경은 일정한 요건과 절차(주주총회 특별결의, 채권자 보호 절차 등)를 거쳐야 가능하며, 언제든지 자유롭게 할 수 있는 것은 아닙니다. (상법 제604조 이하)"
+            },
+            {
+                question: "감사는 회사 또는 자회사에 대하여 소송을 제기할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "감사는 회사에 대하여 또는 회사가 이사에 대하여 소송을 제기하는 경우 회사 대표의 권한을 가집니다. (상법 제414조의2)"
+            },
+            {
+                question: "합병 시 소멸하는 회사의 주주에게 합병 교부금을 지급할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "합병 시 소멸회사 주주에게 주식 대신 합병 교부금(현금 등)을 지급하는 것도 가능합니다. (상법 제523조)"
+            },
+            {
+                question: "회사의 해산 등기는 청산종결 등기와 동시에 이루어진다. (O/X)",
+                answer: "X",
+                explanation: "회사의 해산 등기와 청산종결 등기는 별개입니다. 해산 등기는 해산 사유 발생 시 이루어지고, 청산종결 등기는 청산 절차가 완료된 후에 이루어집니다."
+            },
+            {
+                question: "주식회사의 이사회는 대표이사가 소집하는 것이 원칙이다. (O/X)",
+                answer: "O",
+                explanation: "이사회는 대표이사 또는 이사회 규정에 정해진 이사가 소집합니다. (상법 제390조)"
+            },
+            {
+                question: "유한회사의 사원은 정관으로 그 책임 한도를 자유롭게 정할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "유한회사의 사원은 '출자액을 한도로' 책임을 지는 것이며, 정관으로 이 책임 한도를 임의로 자유롭게 정할 수 없습니다. 상법상 유한책임이 그 본질입니다. (상법 제551조)"
+            },
+            {
+                question: "주주명부 폐쇄는 반드시 정관에 규정이 있어야 한다. (O/X)",
+                answer: "X",
+                explanation: "주주명부 폐쇄는 정관에 규정이 없더라도 이사회의 결의로 할 수 있습니다. 다만, 정관에 규정을 두는 것이 일반적입니다. (상법 제354조)"
+            },
+            {
+                question: "이사 선임 시 주주총회는 정관에 따라 주주가 아닌 자를 이사로 선임할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "이사는 반드시 주주여야 하는 것은 아니므로, 정관에 특별한 제한이 없으면 주주가 아닌 자도 이사로 선임될 수 있습니다."
+            },
+            {
+                question: "회사가 채무를 변제하기 전에 주주에게 이익을 배당하는 것은 허용되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "회사는 이익배당을 할 때 채권자 보호를 위해 일정한 재무 건전성 요건을 충족해야 하며, 채무 변제에 우선하여 이익 배당을 할 수 없습니다. (상법 제462조)"
+            },
+            {
+                question: "주식회사의 이사 선임은 주주총회의 보통결의 사항이다. (O/X)",
+                answer: "O",
+                explanation: "이사의 선임은 주주총회 보통결의로 합니다. (상법 제382조)"
+            },
+            {
+                question: "주식회사의 해산은 주주총회 결의 외에 법원의 명령으로도 가능하다. (O/X)",
+                answer: "O",
+                explanation: "회사의 해산 사유에는 법원의 해산 명령 또는 판결도 포함됩니다. (상법 제520조의2)"
+            },
+            {
+                question: "합자회사의 유한책임사원은 회사에 대하여 출자의무를 부담하며, 이는 현물출자로도 가능하다. (O/X)",
+                answer: "O",
+                explanation: "유한책임사원은 금전 또는 현물로 출자할 수 있습니다. (상법 제272조)"
+            },
+        ];
+
+        /**
+         * Loads embedded quiz data synchronously.
+         * @returns {Promise<Array>} Quiz data array
+         */
+        async function loadQuizData() {
+            return internationalTaxQuizData; // Changed to new quiz data
+        }
+
+        // ============================ Quiz start and initialization ============================
+        /**
+         * Initializes and starts the quiz.
+         * @param {number} numQuestions - Number of questions to play
+         */
+        async function startQuiz(numQuestions) {
+            allQuizData = await loadQuizData(); // Load embedded quiz data
+            if (allQuizData.length === 0) {
+                showMessage("앗! 퀴즈 문제를 찾을 수 없어... 😥");
+                showScreen('start');
+                return;
+            }
+
+            // If requested number of questions is more than total questions, use all questions
+            if (numQuestions > allQuizData.length) {
+                quizTotalQuestions = allQuizData.length;
+                showMessage(`요청한 문제 수(${numQuestions}개)가 전체 문제 수(${allQuizData.length}개)보다 많습니다. 전체 ${quizTotalQuestions}문제를 사용해요!`);
+            } else {
+                quizTotalQuestions = numQuestions;
+            }
+
+            // Shuffle all questions and slice by requested number
+            const shuffledAllQuestions = [...allQuizData];
+            shuffleArray(shuffledAllQuestions);
+            currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false;
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz start
+        }
+
+        /**
+         * Restarts the quiz (full or incorrect questions).
+         * @param {number|'incorrect'} mode - Number of questions to restart with, or 'incorrect' for incorrect questions
+         */
+        function restartQuiz(mode) {
+            if (mode === 'incorrect') {
+                currentQuizData = [...incorrectQuestions]; // Set quiz data to incorrect questions
+                if (currentQuizData.length === 0) {
+                    showMessage('와! 틀린 문제가 하나도 없어! 대단해! 👍');
+                    showScreen('end'); // Stay on end screen if no incorrect questions
+                    return;
+                }
+                shuffleArray(currentQuizData); // Shuffle incorrect questions too
+                quizTotalQuestions = currentQuizData.length;
+            } else {
+                const shuffledAllQuestions = [...allQuizData];
+                shuffleArray(shuffledAllQuestions);
+                currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+            }
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false;
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz restart
+        }
+
+        /**
+         * Starts the review mode for incorrect questions.
+         */
+        function startReviewMode() {
+            restartQuiz('incorrect'); // Call restart quiz with 'incorrect' mode
+        }
+
+        // ============================ Timer functions ============================
+        /**
+         * Starts the quiz timer.
+         */
+        function startTimer() {
+            if (timerIntervalId) {
+                clearInterval(timerIntervalId);
+            }
+            timerIntervalId = setInterval(() => {
+                timer++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        /**
+         * Stops the quiz timer.
+         */
+        function stopTimer() {
+            clearInterval(timerIntervalId);
+            timerIntervalId = null;
+        }
+
+        /**
+         * Updates the timer display in MM:SS format.
+         */
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // ============================ Display functions ============================
+        /**
+         * Displays the current question and its choices.
+         */
+        function displayQuestion() {
+            // Update question count display
+            questionCount.textContent = `문제 ${currentQuestionIndex + 1} / ${quizTotalQuestions}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Displays raw score during quiz
+
+            const question = currentQuizData[currentQuestionIndex];
+            questionText.textContent = question.question;
+            
+            // Clear previous choices and reset styles
+            questionChoicesArea.innerHTML = `
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            `;
+
+            // Attach event listeners to the new O/X choice elements
+            Array.from(questionChoicesArea.children).forEach(choiceDiv => {
+                choiceDiv.addEventListener('click', () => {
+                    if (!isAnswerChecked) { // Ensure only one selection/check per question
+                        playButtonClickSound(); // Play sound immediately on selection
+                        selectChoice(choiceDiv.dataset.choice); // Visually select
+                        checkAnswer(); // Call checkAnswer logic
+                        // Disable choices after an answer is submitted
+                        Array.from(questionChoicesArea.children).forEach(c => {
+                            c.style.pointerEvents = 'none';
+                            c.classList.add('cursor-not-allowed'); // Add a visual cue for disabled
+                        });
+                    }
+                });
+            });
+
+            // Reset feedback and button text
+            feedbackExplanationArea.classList.add('hidden');
+            feedbackText.textContent = '';
+            explanationText.textContent = '';
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Button text is always "다음 문제" after a choice is made
+            selectedChoice = null; // Clear selected choice
+            isAnswerChecked = false; // Reset answer checked flag for the *new* question
+            resetChoiceStyles(); // Reset choice styles and re-enable pointer events for new question
+        }
+
+        /**
+         * Handles choice selection.
+         * @param {string} choice - The selected choice ('O' or 'X')
+         */
+        function selectChoice(choice) {
+            resetChoiceStyles(); // Clear previous selection styles
+            selectedChoice = choice;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${choice}"]`);
+            selectedChoiceElement.classList.add(
+                'bg-blue-200', 'border-blue-500' // Light mode selection styles
+            );
+            // Apply dark mode specific selection styles
+            if (document.documentElement.classList.contains('dark')) {
+                selectedChoiceElement.classList.add('dark:selected-choice-style'); // Apply custom class for dark mode
+            }
+        }
+
+        /**
+         * Resets the styles of all choices.
+         */
+        function resetChoiceStyles() {
+            Array.from(questionChoicesArea.children).forEach(child => {
+                child.classList.remove(
+                    'bg-blue-200', 'border-blue-500', // selected (light mode)
+                    'bg-green-100', 'border-green-400', // correct (light mode)
+                    'bg-red-200', 'border-red-500',     // incorrect (light mode)
+                    'dark:selected-choice-style', // Remove custom dark mode selected class
+                    'dark:bg-green-700', 'dark:border-green-400', // correct (dark mode)
+                    'dark:bg-red-600', 'dark:border-red-300' // incorrect (dark mode)
+                );
+                child.style.pointerEvents = 'auto'; // Re-enable pointer events for choices
+                child.classList.remove('cursor-not-allowed'); // Remove disabled cursor
+            });
+        }
+
+        /**
+         * Checks the selected answer (called immediately when a choice is made).
+         */
+        function checkAnswer() {
+            isAnswerChecked = true; // Set flag to indicate answer has been checked
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Change button text to "다음 문제"
+            feedbackExplanationArea.classList.remove('hidden'); // Show feedback area
+
+            const currentQuestion = currentQuizData[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${selectedChoice}"]`);
+            const correctChoiceElement = questionChoicesArea.querySelector(`[data-choice="${correctAnswer}"]`);
+
+            // Highlight correct answer
+            correctChoiceElement.classList.add('bg-green-100', 'border-green-400', 'dark:bg-green-700', 'dark:border-green-400');
+
+            if (selectedChoice === correctAnswer) {
+                score++; // Increment raw score
+                feedbackText.textContent = '딩동댕! 잘했어! 🎉';
+                // Remove previous error state colors and add success state colors including dark mode variants
+                feedbackText.classList.remove('text-red-600', 'dark:text-red-400');
+                feedbackText.classList.add('text-green-600', 'dark:text-green-400');
+                playCorrectSound(); // Play correct sound
+            } else {
+                feedbackText.textContent = '아쉬워! ㅠㅠ 다시 생각해볼까? 🧐';
+                // Remove previous success state colors and add error state colors including dark mode variants
+                feedbackText.classList.remove('text-green-600', 'dark:text-green-400');
+                feedbackText.classList.add('text-red-600', 'dark:text-red-400');
+                // Ensure selected incorrect answer removes selection highlight properly and applies incorrect style
+                selectedChoiceElement.classList.remove('bg-blue-200', 'border-blue-500', 'dark:selected-choice-style'); // Remove selected style
+                selectedChoiceElement.classList.add('bg-red-200', 'border-red-500', 'dark:bg-red-600', 'dark:border-red-300'); // Add incorrect style
+                incorrectQuestions.push(currentQuestion); // Add to incorrect questions
+                playIncorrectSound(); // Play incorrect sound
+            }
+            explanationText.textContent = `꼼꼼 해설: ${currentQuestion.explanation}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Update score immediately (raw score)
+        }
+
+        /**
+         * Moves to the next question or ends the quiz (now always called by checkNextButton).
+         */
+        function checkOrNextQuestion() {
+            moveToNextQuestion();
+            playButtonClickSound(); // Play sound on button click
+        }
+
+        /**
+         * Moves to the next question or ends the quiz.
+         */
+        function moveToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizTotalQuestions) {
+                displayQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        /**
+         * Ends the quiz and displays the final score.
+         */
+        function endQuiz() {
+            stopTimer(); // Stop the timer
+            showScreen('end');
+
+            // Calculate final score based on 100-point scale
+            const finalCalculatedScore = (score / quizTotalQuestions) * 100;
+            const correctCount = score;
+            const incorrectCount = incorrectQuestions.length;
+
+            // Display all information in the finalScoreDisplay element
+            finalScoreDisplay.textContent = `(총 ${quizTotalQuestions}문제, ${correctCount}개 정답, ${incorrectCount}개 오답! 대단해! 🎉 점수: ${finalCalculatedScore.toFixed(0)}점)`;
+            
+            playEndSound(); // Play end sound
+            updateQuizHeaderVisibility(false); // Hide quiz header
+            endQuizButtonsArea.classList.remove('hidden'); // Ensure buttons are visible on end screen
+        }
+
+        /**
+         * Controls which screen is visible.
+         * @param {'start'|'quiz'|'end'} screenName - The name of the screen to show
+         */
+        function showScreen(screenName) {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            endQuizScreen.classList.add('hidden');
+
+            // Always hide settings initially, then show only if it's the start screen
+            settingsControls.classList.add('hidden'); // Hide settings for all screens by default
+
+            if (screenName === 'start') {
+                startScreen.classList.remove('hidden');
+                settingsControls.classList.remove('hidden'); // Show settings only on start screen
+            } else if (screenName === 'quiz') {
+                quizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            } else if (screenName === 'end') {
+                endQuizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            }
+        }
+
+        /**
+         * Toggles the visibility of the quiz header elements.
+         * @param {boolean} show - True to show, false to hide
+         */
+        function updateQuizHeaderVisibility(show) {
+            if (show) {
+                quizHeader.classList.remove('hidden');
+            } else {
+                quizHeader.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Shuffles an array randomly (Fisher-Yates shuffle algorithm).
+         * @param {Array} array - The array to shuffle
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        // ============================ Event Listeners ============================
+
+        // Start screen button event listeners
+        start10Button.addEventListener('click', () => startQuiz(10));
+        start20Button.addEventListener('click', () => startQuiz(20));
+        start40Button.addEventListener('click', () => startQuiz(40));
+
+        // This button now always moves to the next question or ends the quiz
+        checkNextButton.addEventListener('click', checkOrNextQuestion);
+        endEarlyButton.addEventListener('click', endQuiz);
+        // 'Restart Full Quiz' button restarts with the current quiz session's question count
+        restartFullQuizButton.addEventListener('click', () => restartQuiz(quizTotalQuestions));
+        reviewIncorrectButton.addEventListener('click', startReviewMode);
+        goToHomeButton.addEventListener('click', () => {
+            location.reload(); // Go to home screen = reload page
+        });
+
+        // Dark mode toggle event listener
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            // Toggle icons based on dark mode status
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        // Sound toggle event listener
+        soundToggle.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled; // Toggle sound status
+            // Update Tone.Destination.mute immediately
+            Tone.Destination.mute = !isSoundEnabled;
+            // Toggle icons based on sound status
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+
+
+        // ============================ Quiz initialization and start on DOMContentLoaded ============================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initially show only the start screen, hide all quiz related elements
+            startScreen.classList.remove('hidden');
+            quizScreen.classList.add('hidden'); // Explicitly hide quizScreen
+            endQuizScreen.classList.add('hidden'); // Explicitly hide endQuizScreen
+
+            quizHeader.classList.add('hidden');
+            questionChoicesArea.classList.add('hidden');
+            feedbackExplanationArea.classList.add('hidden');
+            quizControls.classList.add('hidden');
+            endQuizButtonsArea.classList.add('hidden'); // This line was important!
+            scoreDisplay.classList.add('hidden');
+
+            // Settings control should only be visible on the start screen when the page loads
+            showScreen('start'); // This handles visibility of settingsControls correctly
+
+            // Set initial dark mode icon based on system preference or saved state
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+
+            // Set initial sound icon (default: on)
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
